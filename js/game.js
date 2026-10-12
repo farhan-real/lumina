@@ -10,7 +10,12 @@ window.Lumina.Game = {
   isLevelCleared: false,
   isPreviewMode: false,
 
-  init() {
+  async init() {
+    // Resolve all campaign levels before binding screens
+    if (window.Lumina.LevelRegistry?.ensureLoaded) {
+      await window.Lumina.LevelRegistry.ensureLoaded();
+    }
+
     this.bindMenuButtons();
 
     if (window.Lumina.Raycaster?.init) window.Lumina.Raycaster.init();

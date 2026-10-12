@@ -33,20 +33,6 @@
     <main id="screen-gameplay" class="view-screen hidden">
       <div id="canvas-container" class="canvas-container">
         <canvas id="viewport-canvas"></canvas>
-        <div id="gizmo-rotation" class="gizmo-rotation hidden">
-          <div id="gizmo-coords" class="gizmo-coord-badge">X: 500 Y: 350</div>
-          <div class="gizmo-ring"></div>
-          <div class="gizmo-handle"></div>
-          <div class="gizmo-angle-control">
-            <button id="btn-angle-sub" class="btn-step" type="button">-5°</button>
-            <input type="number" id="gizmo-angle-input" class="gizmo-angle-input" min="0" max="359" value="0">
-            <span class="gizmo-unit">°</span>
-            <button id="btn-angle-add" class="btn-step" type="button">+5°</button>
-            <button id="btn-gizmo-remove" class="btn-step btn-remove" type="button" title="Remove piece (Delete)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
-            </button>
-          </div>
-        </div>
       </div>
 
       <header id="game-header" class="game-header">
@@ -139,19 +125,6 @@
   <script src="js/data/rules/constants.js"></script>
   <script src="js/data/rules/elements.js"></script>
   <script src="js/data/levels/level-registry.js"></script>
-  <script src="js/data/levels/level-01.js"></script>
-  <script src="js/data/levels/level-02.js"></script>
-  <script src="js/data/levels/level-03.js"></script>
-  <script src="js/data/levels/level-04.js"></script>
-  <script src="js/data/levels/level-05.js"></script>
-  <script src="js/data/levels/level-06.js"></script>
-  <script src="js/data/levels/level-07.js"></script>
-  <script src="js/data/levels/level-08.js"></script>
-  <script src="js/data/levels/level-09.js"></script>
-  <script src="js/data/levels/level-10.js"></script>
-  <script src="js/data/levels/level-11.js"></script>
-  <script src="js/data/levels/level-12.js"></script>
-  <script src="js/data/levels/level-13.js"></script>
 
   <script src="js/systems/audio/synth.js"></script>
   <script src="js/systems/audio/sfx.js"></script>
@@ -177,5 +150,9 @@
   <script src="js/editor/editor.js"></script>
 
   <script src="js/game.js"></script>
+
+  <!-- Local Development Tools (Gitignorable) -->
+  <link rel="stylesheet" href="dev/dev.css" onerror="this.remove()">
+  <script src="dev/dev.js" onerror="this.remove()"></script>
 </body>
 </html>

@@ -2,3 +2,4 @@ super_secret_folder/
 .env
 .idea/
 .vscode/
+dev/

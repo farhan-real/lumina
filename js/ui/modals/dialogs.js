@@ -68,29 +68,37 @@ window.Lumina.DialogTemplates = {
 
   onOpen(modalId, el, contextData) {
     if (modalId === 'level-select') {
-      const grid = el.querySelector('#level-select-grid');
-      grid.innerHTML = '';
-      const allLevels = window.Lumina.LevelRegistry.getAll();
+      const renderGrid = () => {
+        const grid = el.querySelector('#level-select-grid');
+        grid.innerHTML = '';
+        const allLevels = window.Lumina.LevelRegistry.getAll();
 
-      allLevels.forEach((lvl, idx) => {
-        const card = document.createElement('div');
-        const unlocked = window.Lumina.LevelRegistry.isUnlocked(idx);
-        card.className = `level-card ${unlocked ? '' : 'locked'}`;
-        card.innerHTML = `<span class="num">${lvl.id}</span><span class="state">${unlocked ? 'OPEN' : 'LOCKED'}</span>`;
-        if (unlocked) {
-          card.onclick = () => {
-            if (window.Lumina.Game.currentScreen === 'editor') {
-              window.Lumina.Editor.loadLevelIntoEditor(lvl);
-            } else {
-              window.Lumina.LevelRegistry.setCurrentIndex(idx);
-              window.Lumina.Game.loadLevel(lvl);
-              window.Lumina.Game.switchScreen('gameplay');
-            }
-            window.Lumina.ModalManager.close();
-          };
-        }
-        grid.appendChild(card);
-      });
+        allLevels.forEach((lvl, idx) => {
+          const card = document.createElement('div');
+          const unlocked = window.Lumina.LevelRegistry.isUnlocked(idx);
+          card.className = `level-card ${unlocked ? '' : 'locked'}`;
+          card.innerHTML = `<span class="num">${lvl.id}</span><span class="state">${unlocked ? 'OPEN' : 'LOCKED'}</span>`;
+          if (unlocked) {
+            card.onclick = () => {
+              if (window.Lumina.Game.currentScreen === 'editor') {
+                window.Lumina.Editor.loadLevelIntoEditor(lvl);
+              } else {
+                window.Lumina.LevelRegistry.setCurrentIndex(idx);
+                window.Lumina.Game.loadLevel(lvl);
+                window.Lumina.Game.switchScreen('gameplay');
+              }
+              window.Lumina.ModalManager.close();
+            };
+          }
+          grid.appendChild(card);
+        });
+      };
+
+      if (window.Lumina.LevelRegistry?.ensureLoaded) {
+        window.Lumina.LevelRegistry.ensureLoaded().then(renderGrid);
+      } else {
+        renderGrid();
+      }
 
       const customContainer = el.querySelector('#custom-levels-container');
       customContainer.innerHTML = '';
@@ -197,4 +205,4 @@ window.Lumina.DialogTemplates = {
       }
     }
   }
-};
+};  
