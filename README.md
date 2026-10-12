@@ -26,23 +26,18 @@ Guide, refract, disperse, and gravitationally bend continuous beams of light acr
 
 ## Quick Start (Play Locally)
 
-Because Lumina uses zero build tools or bundlers, you can play it immediately:
+### 1. Online
+Play directly in your browser:  
+**[https://farhan-real.github.io/lumina/](https://farhan-real.github.io/lumina/)**
 
-### Option 1: Direct File Opening
-Double-click `index.html` in your file explorer to open it in any modern browser.
+### 2. Directly (Offline)
+Clone or download this repository, then double-click `index.html` to open it in any modern browser (Chrome, Firefox, Safari, Edge).
 
-### Option 2: Local HTTP Server
-Run a lightweight local server to prevent browser local-file (`file://`) security warnings:
-
+### 3. Local Server (Optional)
 ```bash
-# Using Python 3
-python -m http.server 8000
-
-# Using Node (npx)
-npx serve .
+python3 -m http.server 8000
 ```
-
-Navigate to `http://localhost:8000` in your browser.
+Then open `http://localhost:8000`.
 
 ---
 
