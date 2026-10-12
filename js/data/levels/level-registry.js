@@ -7,7 +7,10 @@ window.Lumina.LevelRegistry = {
   activeCustomLevel: null,
 
   register(levelData) {
-    this.levels.push(levelData);
+    const exists = this.levels.some((l) => l.id === levelData.id);
+    if (!exists) {
+      this.levels.push(levelData);
+    }
   },
 
   getAll() {
@@ -36,7 +39,10 @@ window.Lumina.LevelRegistry = {
 
   isUnlocked(index) {
     if (index === 0) return true;
-    return localStorage.getItem('lumina_level_' + (index - 1)) === 'cleared';
+    // Check both standard and legacy storage keys
+    const cleared = localStorage.getItem('lumina_level_' + (index - 1)) === 'cleared'
+      || localStorage.getItem('lumina_level_cleared_' + (index - 1)) === 'true';
+    return cleared;
   },
 
   markCompleted(index) {
@@ -45,13 +51,20 @@ window.Lumina.LevelRegistry = {
     }
   },
 
+  // Cleans all progression, legacy flags, and custom saves from localStorage
   clearSaveData() {
-    const keysToRemove = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('lumina_level_')) keysToRemove.push(key);
+    try {
+      const allKeys = Object.keys(localStorage);
+      allKeys.forEach((key) => {
+        if (key.toLowerCase().startsWith('lumina')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (err) {
+      localStorage.clear();
     }
-    keysToRemove.forEach(k => localStorage.removeItem(k));
     this.currentLevelIndex = 0;
+    this.isCustomLevelMode = false;
+    this.activeCustomLevel = null;
   }
 };

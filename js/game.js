@@ -13,7 +13,6 @@ window.Lumina.Game = {
   init() {
     this.bindMenuButtons();
 
-    // Diagnostic check for any missing modules
     const modules = [
       { name: 'Raycaster', obj: window.Lumina.Raycaster },
       { name: 'ModalManager', obj: window.Lumina.ModalManager },
@@ -31,7 +30,6 @@ window.Lumina.Game = {
       }
     });
 
-    // Safe guarded initialization (prevents undefined.init crashes)
     if (window.Lumina.Raycaster?.init) window.Lumina.Raycaster.init();
     if (window.Lumina.ModalManager?.init) window.Lumina.ModalManager.init();
     if (window.Lumina.Gizmo?.init) window.Lumina.Gizmo.init();
@@ -92,9 +90,12 @@ window.Lumina.Game = {
 
     if (btnClear) {
       btnClear.onclick = () => {
-        if (confirm('Reset all saved progress and lock completed levels?')) {
-          if (window.Lumina.LevelRegistry?.clearSaveData) window.Lumina.LevelRegistry.clearSaveData();
+        if (confirm('Reset all game data, progress, and custom levels?')) {
+          if (window.Lumina.LevelRegistry?.clearSaveData) {
+            window.Lumina.LevelRegistry.clearSaveData();
+          }
           if (window.Lumina.SFX?.playClick) window.Lumina.SFX.playClick();
+          alert('All saved progress and custom levels have been reset.');
         }
       };
     }

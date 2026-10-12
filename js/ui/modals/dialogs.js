@@ -70,7 +70,9 @@ window.Lumina.DialogTemplates = {
     if (modalId === 'level-select') {
       const grid = el.querySelector('#level-select-grid');
       grid.innerHTML = '';
-      window.Lumina.LevelRegistry.getAll().forEach((lvl, idx) => {
+      const allLevels = window.Lumina.LevelRegistry.getAll();
+
+      allLevels.forEach((lvl, idx) => {
         const card = document.createElement('div');
         const unlocked = window.Lumina.LevelRegistry.isUnlocked(idx);
         card.className = `level-card ${unlocked ? '' : 'locked'}`;
@@ -126,7 +128,7 @@ window.Lumina.DialogTemplates = {
           item.querySelector('.btn-del-custom').onclick = () => {
             if (confirm(`Delete custom level "${cLvl.title}"?`)) {
               window.Lumina.EditorIO.deleteFromStorage(cLvl.id);
-              window.Lumina.SFX.playClick();
+              if (window.Lumina.SFX?.playClick) window.Lumina.SFX.playClick();
               this.onOpen('level-select', el);
             }
           };
@@ -136,8 +138,9 @@ window.Lumina.DialogTemplates = {
       }
 
       el.querySelector('#btn-modal-clear-memory').onclick = () => {
-        if (confirm('Reset all saved progress and lock completed levels?')) {
+        if (confirm('Reset all game data, progress, and custom levels?')) {
           window.Lumina.LevelRegistry.clearSaveData();
+          if (window.Lumina.SFX?.playClick) window.Lumina.SFX.playClick();
           this.onOpen('level-select', el);
         }
       };
@@ -178,10 +181,20 @@ window.Lumina.DialogTemplates = {
         }
       };
     } else if (modalId === 'victory') {
-      el.querySelector('#btn-next-level').onclick = () => {
-        window.Lumina.ModalManager.close();
-        window.Lumina.Game.loadNextLevel();
-      };
+      const btn = el.querySelector('#btn-next-level');
+      if (window.Lumina.Game.isPreviewMode) {
+        btn.textContent = 'Exit Preview';
+        btn.onclick = () => {
+          window.Lumina.ModalManager.close();
+          window.Lumina.Game.exitPreviewMode();
+        };
+      } else {
+        btn.textContent = 'Next Level';
+        btn.onclick = () => {
+          window.Lumina.ModalManager.close();
+          window.Lumina.Game.loadNextLevel();
+        };
+      }
     }
   }
 };
