@@ -13,23 +13,6 @@ window.Lumina.Game = {
   init() {
     this.bindMenuButtons();
 
-    const modules = [
-      { name: 'Raycaster', obj: window.Lumina.Raycaster },
-      { name: 'ModalManager', obj: window.Lumina.ModalManager },
-      { name: 'Gizmo', obj: window.Lumina.Gizmo },
-      { name: 'Renderer', obj: window.Lumina.Renderer },
-      { name: 'Pointer', obj: window.Lumina.Pointer },
-      { name: 'HUDHeader', obj: window.Lumina.HUDHeader },
-      { name: 'HUDToolbar', obj: window.Lumina.HUDToolbar },
-      { name: 'Editor', obj: window.Lumina.Editor }
-    ];
-
-    modules.forEach((m) => {
-      if (!m.obj) {
-        console.warn(`Lumina module not loaded: ${m.name}. Check script tag in index.html.`);
-      }
-    });
-
     if (window.Lumina.Raycaster?.init) window.Lumina.Raycaster.init();
     if (window.Lumina.ModalManager?.init) window.Lumina.ModalManager.init();
     if (window.Lumina.Gizmo?.init) window.Lumina.Gizmo.init();
@@ -52,9 +35,6 @@ window.Lumina.Game = {
 
     window.addEventListener('resize', () => {
       if (window.Lumina.Renderer?.resize) window.Lumina.Renderer.resize();
-      if (this.currentElements.length > 0 && window.Lumina.Gizmo?.activeElement) {
-        window.Lumina.Gizmo.updatePosition(window.Lumina.Gizmo.activeElement);
-      }
     });
 
     this.startLoop();
@@ -128,12 +108,14 @@ window.Lumina.Game = {
       if (canvas && container && canvas.parentElement !== container) {
         container.appendChild(canvas.parentElement);
       }
+      if (window.Lumina.Pointer) window.Lumina.Pointer.selectedElement = null;
     } else if (screenName === 'gameplay') {
       const canvas = document.getElementById('viewport-canvas');
       const container = document.getElementById('screen-gameplay');
       if (canvas && container && canvas.parentElement !== container) {
         container.insertBefore(canvas.parentElement, container.firstChild);
       }
+      if (window.Lumina.EditorTransform) window.Lumina.EditorTransform.target = null;
     }
 
     if (window.Lumina.Renderer?.resize) window.Lumina.Renderer.resize();
@@ -150,9 +132,10 @@ window.Lumina.Game = {
     this.currentSensors = JSON.parse(JSON.stringify(levelData.sensors || []));
     this.currentInventory = JSON.parse(JSON.stringify(levelData.inventory || []));
 
+    if (window.Lumina.Pointer) window.Lumina.Pointer.selectedElement = null;
+    if (window.Lumina.EditorTransform) window.Lumina.EditorTransform.target = null;
     if (window.Lumina.HUDHeader?.updateLevelInfo) window.Lumina.HUDHeader.updateLevelInfo(levelData);
     if (window.Lumina.HUDToolbar?.renderInventory) window.Lumina.HUDToolbar.renderInventory(this.currentInventory);
-    if (window.Lumina.Gizmo?.hide) window.Lumina.Gizmo.hide();
   },
 
   resetCurrentLevel() {
@@ -175,14 +158,32 @@ window.Lumina.Game = {
     const idx = this.currentElements.indexOf(element);
     if (idx !== -1) {
       this.currentElements.splice(idx, 1);
-      const invItem = this.currentInventory.find((i) => i.type === element.type);
-      if (invItem) {
-        invItem.count++;
+      const match = this.currentInventory.find((i) => {
+        if (i.type !== element.type) return false;
+        if (element.height && i.height !== element.height) return false;
+        if (element.length && i.length !== element.length) return false;
+        if (element.size && i.size !== element.size) return false;
+        if (element.side && i.side !== element.side) return false;
+        return true;
+      });
+
+      if (match) {
+        match.count++;
       } else {
-        this.currentInventory.push({ type: element.type, count: 1 });
+        const newItem = { type: element.type, count: 1 };
+        if (element.height) newItem.height = element.height;
+        if (element.length) newItem.length = element.length;
+        if (element.size) newItem.size = element.size;
+        if (element.side) newItem.side = element.side;
+        if (element.curvature) newItem.curvature = element.curvature;
+        if (element.radius) newItem.radius = element.radius;
+        if (element.focalLength) newItem.focalLength = element.focalLength;
+        this.currentInventory.push(newItem);
       }
+
+      if (window.Lumina.Pointer) window.Lumina.Pointer.selectedElement = null;
+      if (window.Lumina.EditorTransform) window.Lumina.EditorTransform.target = null;
       if (window.Lumina.HUDToolbar?.renderInventory) window.Lumina.HUDToolbar.renderInventory(this.currentInventory);
-      if (window.Lumina.Gizmo?.hide) window.Lumina.Gizmo.hide();
       if (window.Lumina.SFX?.playClick) window.Lumina.SFX.playClick();
     }
   },
@@ -237,8 +238,13 @@ window.Lumina.Game = {
     const r = window.Lumina.Renderer;
     if (!r) return;
     r.clear();
+
+    const selectedTarget = (this.currentScreen === 'gameplay')
+      ? window.Lumina.Pointer?.selectedElement
+      : window.Lumina.Editor?.selectedEntity;
+
     if (window.Lumina.SceneView?.renderScene) {
-      window.Lumina.SceneView.renderScene(r.ctx, this.currentEmitters, this.currentElements, this.currentSensors);
+      window.Lumina.SceneView.renderScene(r.ctx, this.currentEmitters, this.currentElements, this.currentSensors, selectedTarget);
     }
     if (window.Lumina.BeamRenderer?.render && window.Lumina.Raycaster) {
       window.Lumina.BeamRenderer.render(r.ctx, window.Lumina.Raycaster.rayPool, window.Lumina.Raycaster.activeRays);

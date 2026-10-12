@@ -203,8 +203,9 @@ window.Lumina.Raycaster = {
   checkSensors(x1, y1, x2, y2, r, g, b, sourceId, sensors) {
     for (let s = 0; s < sensors.length; s++) {
       const sens = sensors[s];
+      const radius = sens.radius || window.Lumina.Constants.SENSOR_RADIUS;
       const dist = this.distToSegment(sens.x, sens.y, x1, y1, x2, y2);
-      if (dist <= window.Lumina.Constants.SENSOR_RADIUS) {
+      if (dist <= radius) {
         let beamColor = 'any';
         if (r > 0.6 && b < 0.45 && g < 0.45) beamColor = 'red';
         else if (g > 0.6 && r < 0.45 && b < 0.45) beamColor = 'green';

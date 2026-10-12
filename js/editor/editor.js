@@ -15,7 +15,7 @@ window.Lumina.Editor = {
       height: 700,
       emitters: [{ x: 120, y: 350, angle: 0, color: 'white', _isEmitter: true }],
       sensors: [{
-        id: 's1', x: 880, y: 350,
+        id: 's1', x: 880, y: 350, radius: 24,
         requirements: [{ color: 'any', count: 1 }],
         requiredColor: 'any', requiredBeams: 1,
         active: false, _isSensor: true
@@ -40,7 +40,7 @@ window.Lumina.Editor = {
       height: 700,
       emitters: [{ x: 120, y: 350, angle: 0, color: 'white', _isEmitter: true }],
       sensors: [{
-        id: 's1', x: 880, y: 350,
+        id: 's1', x: 880, y: 350, radius: 24,
         requirements: [{ color: 'any', count: 1 }],
         requiredColor: 'any', requiredBeams: 1,
         active: false, _isSensor: true
@@ -59,7 +59,11 @@ window.Lumina.Editor = {
     this.currentLevel.title = this.currentLevel.title || 'Custom Level';
     this.currentLevel.staticElements = this.currentLevel.staticElements || [];
     this.currentLevel.emitters = (this.currentLevel.emitters || []).map((em) => { em._isEmitter = true; return em; });
-    this.currentLevel.sensors = (this.currentLevel.sensors || []).map((s) => { s._isSensor = true; return s; });
+    this.currentLevel.sensors = (this.currentLevel.sensors || []).map((s) => {
+      s._isSensor = true;
+      s.radius = s.radius || 24;
+      return s;
+    });
     this.currentLevel.inventory = this.currentLevel.inventory || [];
 
     this.isTestMode = false;
@@ -224,7 +228,7 @@ window.Lumina.Editor = {
 
     if (tool === 'sensor') {
       spawned = {
-        id: 's_' + Date.now(), x, y, _isSensor: true,
+        id: 's_' + Date.now(), x, y, radius: 24, _isSensor: true,
         requirements: [{ color: 'any', count: 1 }],
         requiredColor: 'any', requiredBeams: 1, active: false
       };
@@ -248,10 +252,10 @@ window.Lumina.Editor = {
       spawned = { type: 'prism', x, y, side: 70, angle: 0, movable: true, rotatable: true };
       this.currentLevel.staticElements.push(spawned);
     } else if (tool === 'lens_convex') {
-      spawned = { type: 'lens_convex', x, y, height: 160, angle: 0, movable: true, rotatable: true };
+      spawned = { type: 'lens_convex', x, y, height: 160, focalLength: 250, angle: 0, movable: true, rotatable: true };
       this.currentLevel.staticElements.push(spawned);
     } else if (tool === 'lens_concave') {
-      spawned = { type: 'lens_concave', x, y, height: 160, angle: 0, movable: true, rotatable: true };
+      spawned = { type: 'lens_concave', x, y, height: 160, focalLength: -180, angle: 0, movable: true, rotatable: true };
       this.currentLevel.staticElements.push(spawned);
     } else if (tool === 'beam_splitter') {
       spawned = { type: 'beam_splitter', x, y, size: 50, angle: 45, movable: true, rotatable: true };

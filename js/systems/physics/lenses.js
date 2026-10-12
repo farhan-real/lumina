@@ -25,7 +25,7 @@ window.Lumina.Lenses = {
     const h = (hitX - lens.x) * (-sinA) + (hitY - lens.y) * cosA;
 
     const isConvex = lens.type === 'lens_convex';
-    const focalLength = isConvex ? 250 : -180;
+    const focalLength = lens.focalLength || (isConvex ? 250 : -180);
 
     // Check whether ray propagates through the lens in the forward or reverse direction
     const forwardProj = dx * cosA + dy * sinA;

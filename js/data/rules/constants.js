@@ -17,6 +17,8 @@ window.Lumina.Constants = {
 
   // Sensor parameters
   SENSOR_RADIUS: 24,
+  SENSOR_MIN_RADIUS: 14,
+  SENSOR_MAX_RADIUS: 80,
 
   // Calibrated color spectrum map
   COLOR_MAP: {

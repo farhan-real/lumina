@@ -19,29 +19,46 @@ window.Lumina.EditorIO = {
         angle: e.angle || 0,
         color: e.color || 'white'
       })),
-      sensors: (data.sensors || []).map((s) => ({
-        id: s.id || ('s_' + Math.random().toString(36).substr(2, 5)),
-        x: Math.round(s.x),
-        y: Math.round(s.y),
-        requirements: (s.requirements && s.requirements.length > 0)
+      sensors: (data.sensors || []).map((s) => {
+        const item = {
+          id: s.id || ('s_' + Math.random().toString(36).substr(2, 5)),
+          x: Math.round(s.x),
+          y: Math.round(s.y)
+        };
+        if (s.radius !== undefined) item.radius = Math.round(s.radius);
+        item.requirements = (s.requirements && s.requirements.length > 0)
           ? s.requirements.map((r) => ({ color: r.color, count: r.count }))
-          : [{ color: s.requiredColor || 'any', count: s.requiredBeams || 1 }],
-        requiredColor: s.requiredColor || 'any',
-        requiredBeams: s.requiredBeams || 1,
-        active: false
-      })),
+          : [{ color: s.requiredColor || 'any', count: s.requiredBeams || 1 }];
+        item.requiredColor = s.requiredColor || 'any';
+        item.requiredBeams = s.requiredBeams || 1;
+        item.active = false;
+        return item;
+      }),
       staticElements: (data.staticElements || []).map((el) => {
         const item = { type: el.type, x: Math.round(el.x), y: Math.round(el.y) };
         if (el.angle !== undefined) item.angle = el.angle;
         if (el.width !== undefined) item.width = el.width;
         if (el.height !== undefined) item.height = el.height;
         if (el.length !== undefined) item.length = el.length;
+        if (el.size !== undefined) item.size = el.size;
         if (el.side !== undefined) item.side = el.side;
         if (el.radius !== undefined) item.radius = el.radius;
+        if (el.curvature !== undefined) item.curvature = el.curvature;
+        if (el.focalLength !== undefined) item.focalLength = el.focalLength;
         if (el.linkId !== undefined) item.linkId = el.linkId;
         return item;
       }),
-      inventory: (data.inventory || []).map((i) => ({ type: i.type, count: i.count })),
+      inventory: (data.inventory || []).map((i) => {
+        const inv = { type: i.type, count: i.count };
+        if (i.length !== undefined) inv.length = i.length;
+        if (i.height !== undefined) inv.height = i.height;
+        if (i.size !== undefined) inv.size = i.size;
+        if (i.side !== undefined) inv.side = i.side;
+        if (i.radius !== undefined) inv.radius = i.radius;
+        if (i.curvature !== undefined) inv.curvature = i.curvature;
+        if (i.focalLength !== undefined) inv.focalLength = i.focalLength;
+        return inv;
+      }),
       initialPlacements: []
     };
 
@@ -50,7 +67,6 @@ window.Lumina.EditorIO = {
     return `window.Lumina = window.Lumina || {};\n\n(function() {\n  const level = ${indented};\n\n  window.Lumina.LevelRegistry.register(level);\n})();`;
   },
 
-  // Parses JS level files, variable assignments, or raw JSON
   parseCode(codeString) {
     try {
       const str = codeString.trim();

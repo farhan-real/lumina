@@ -1,15 +1,15 @@
 window.Lumina = window.Lumina || {};
 
 window.Lumina.SceneView = {
-  renderScene(ctx, emitters, elements, sensors) {
+  renderScene(ctx, emitters, elements, sensors, selectedEntity = null) {
     this.renderEmitters(ctx, emitters);
     this.renderSensors(ctx, sensors);
     for (let i = 0; i < elements.length; i++) {
       this.renderElement(ctx, elements[i]);
     }
 
-    if (window.Lumina.Game.currentScreen === 'editor' && !window.Lumina.Editor.isTestMode) {
-      window.Lumina.EditorTransform.render(ctx, window.Lumina.Editor.selectedEntity);
+    if (selectedEntity && window.Lumina.EditorTransform?.render) {
+      window.Lumina.EditorTransform.render(ctx, selectedEntity);
     }
   },
 
@@ -44,8 +44,11 @@ window.Lumina.SceneView = {
 
     for (let i = 0; i < sensors.length; i++) {
       const s = sensors[i];
+      const r = s.radius || 24;
+      const b = r + 4;
+      const bl = Math.max(5, Math.round(r * 0.28));
       const hasReqs = s.requirements && s.requirements.length > 0;
-      const totalReq = hasReqs ? s.requirements.reduce((acc, r) => acc + (r.count || 1), 0) : (s.requiredBeams || 1);
+      const totalReq = hasReqs ? s.requirements.reduce((acc, rq) => acc + (rq.count || 1), 0) : (s.requiredBeams || 1);
       const hits = s.currentHits || 0;
       const isCharging = hits > 0 && !s.active;
 
@@ -54,7 +57,6 @@ window.Lumina.SceneView = {
 
       ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : '#38bdf8');
       ctx.lineWidth = 1.8;
-      const b = 28, bl = 7;
       ctx.beginPath();
       ctx.moveTo(-b, -b + bl); ctx.lineTo(-b, -b); ctx.lineTo(-b + bl, -b);
       ctx.moveTo(b - bl, -b); ctx.lineTo(b, -b); ctx.lineTo(b, -b + bl);
@@ -64,36 +66,37 @@ window.Lumina.SceneView = {
 
       ctx.fillStyle = s.active ? 'rgba(0, 245, 160, 0.25)' : (isCharging ? 'rgba(251, 191, 36, 0.15)' : 'rgba(0, 0, 0, 0.85)');
       ctx.beginPath();
-      ctx.arc(0, 0, 22, 0, Math.PI * 2);
+      ctx.arc(0, 0, r - 2, 0, Math.PI * 2);
       ctx.fill();
 
       if (hasReqs && s.requirements.length >= 2) {
         ctx.lineWidth = 3;
         ctx.strokeStyle = colorMap[s.requirements[0].color] || '#ffffff';
-        ctx.beginPath(); ctx.arc(0, 0, 22, Math.PI, 0); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, r - 2, Math.PI, 0); ctx.stroke();
         ctx.strokeStyle = colorMap[s.requirements[1].color] || '#ffffff';
-        ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, r - 2, 0, Math.PI); ctx.stroke();
       } else {
         const singleColor = hasReqs ? s.requirements[0].color : (s.requiredColor || 'any');
         ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : (colorMap[singleColor] || '#ffffff'));
         ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, r - 2, 0, Math.PI * 2); ctx.stroke();
       }
 
       if (totalReq > 1) {
         ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : '#38bdf8');
         ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, Math.max(8, r * 0.58), 0, Math.PI * 2); ctx.stroke();
       }
 
       ctx.fillStyle = s.active ? '#ffffff' : (isCharging ? '#fbbf24' : '#38bdf8');
       ctx.beginPath();
-      ctx.arc(0, 0, s.active ? 8.5 : 5.5, 0, Math.PI * 2);
+      const pipR = s.active ? Math.max(6, r * 0.36) : Math.max(4, r * 0.24);
+      ctx.arc(0, 0, pipR, 0, Math.PI * 2);
       ctx.fill();
 
       let labelText = '';
       if (hasReqs) {
-        labelText = 'λ ' + s.requirements.map((r) => `${r.count}x${r.color.substring(0, 3).toUpperCase()}`).join('+');
+        labelText = 'λ ' + s.requirements.map((rq) => `${rq.count}x${rq.color.substring(0, 3).toUpperCase()}`).join('+');
       } else {
         labelText = s.requiredColor === 'any' ? 'λ ANY' : `λ ${(s.requiredColor || '').toUpperCase()}`;
       }
@@ -103,13 +106,14 @@ window.Lumina.SceneView = {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const tw = ctx.measureText(labelText).width;
+      const badgeY = r + 11;
       ctx.fillStyle = '#020612';
-      ctx.fillRect(-tw / 2 - 4, 32, tw + 8, 14);
+      ctx.fillRect(-tw / 2 - 4, badgeY - 7, tw + 8, 14);
       ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : '#38bdf8');
       ctx.lineWidth = 1;
-      ctx.strokeRect(-tw / 2 - 4, 32, tw + 8, 14);
+      ctx.strokeRect(-tw / 2 - 4, badgeY - 7, tw + 8, 14);
       ctx.fillStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : '#38bdf8');
-      ctx.fillText(labelText, 0, 39);
+      ctx.fillText(labelText, 0, badgeY);
 
       ctx.restore();
     }
@@ -121,15 +125,16 @@ window.Lumina.SceneView = {
     ctx.rotate(((el.angle || 0) * Math.PI) / 180);
 
     if (el.type === 'mirror') {
-      const hl = (el.length || 80) / 2;
+      const len = el.length || 80;
+      const hl = len / 2;
       ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
       ctx.strokeStyle = '#e0f4ff';
       ctx.lineWidth = 2.5;
-      ctx.strokeRect(-hl, -3, el.length || 80, 6);
-      ctx.fillRect(-hl, -3, el.length || 80, 6);
+      ctx.strokeRect(-hl, -3, len, 6);
+      ctx.fillRect(-hl, -3, len, 6);
     } else if (el.type === 'mirror_concave' || el.type === 'mirror_convex') {
       const hl = (el.length || 90) / 2;
-      const sag = el.type === 'mirror_concave' ? 14 : -14;
+      const sag = (el.type === 'mirror_concave' ? 1 : -1) * Math.min(24, Math.max(8, hl * 0.28));
       ctx.strokeStyle = '#e0f4ff';
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -144,43 +149,52 @@ window.Lumina.SceneView = {
       ctx.quadraticCurveTo(0, sag * 1.4, hl, sag * 0.4);
       ctx.stroke();
     } else if (el.type === 'prism') {
+      const side = el.side || 70;
+      const h = (side * Math.sqrt(3)) / 2;
       ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
       ctx.strokeStyle = 'rgba(125, 211, 252, 0.85)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(0, -35); ctx.lineTo(35, 30); ctx.lineTo(-35, 30);
+      ctx.moveTo(0, (-2 * h) / 3);
+      ctx.lineTo(side / 2, h / 3);
+      ctx.lineTo(-side / 2, h / 3);
       ctx.closePath();
       ctx.fill(); ctx.stroke();
     } else if (el.type === 'lens_convex') {
       const hh = (el.height || 160) / 2;
+      const bulge = Math.min(26, Math.max(8, hh * 0.20));
       ctx.fillStyle = 'rgba(0, 240, 255, 0.18)';
       ctx.strokeStyle = '#00f0ff';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(0, -hh);
-      ctx.quadraticCurveTo(18, 0, 0, hh);
-      ctx.quadraticCurveTo(-18, 0, 0, -hh);
+      ctx.quadraticCurveTo(bulge, 0, 0, hh);
+      ctx.quadraticCurveTo(-bulge, 0, 0, -hh);
       ctx.closePath();
       ctx.fill(); ctx.stroke();
     } else if (el.type === 'lens_concave') {
       const hh = (el.height || 160) / 2;
+      const hw = Math.min(24, Math.max(8, hh * 0.16));
+      const waist = Math.max(3, hw * 0.28);
       ctx.fillStyle = 'rgba(0, 240, 255, 0.14)';
       ctx.strokeStyle = '#00f0ff';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(-16, -hh); ctx.lineTo(16, -hh);
-      ctx.quadraticCurveTo(5, 0, 16, hh);
-      ctx.lineTo(-16, hh);
-      ctx.quadraticCurveTo(-5, 0, -16, -hh);
+      ctx.moveTo(-hw, -hh); ctx.lineTo(hw, -hh);
+      ctx.quadraticCurveTo(waist, 0, hw, hh);
+      ctx.lineTo(-hw, hh);
+      ctx.quadraticCurveTo(-waist, 0, -hw, -hh);
       ctx.closePath();
       ctx.fill(); ctx.stroke();
     } else if (el.type === 'beam_splitter') {
+      const sz = el.size || 50;
+      const hs = sz / 2;
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-      ctx.strokeRect(-25, -25, 50, 50);
+      ctx.strokeRect(-hs, -hs, sz, sz);
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(-25, 25); ctx.lineTo(25, -25);
+      ctx.moveTo(-hs, hs); ctx.lineTo(hs, -hs);
       ctx.stroke();
     } else if (el.type === 'portal') {
       const hl = (el.length || 70) / 2;
