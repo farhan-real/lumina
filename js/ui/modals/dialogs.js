@@ -84,8 +84,8 @@ window.Lumina.DialogTemplates = {
                 window.Lumina.Editor.loadLevelIntoEditor(lvl);
               } else {
                 window.Lumina.LevelRegistry.setCurrentIndex(idx);
-                window.Lumina.Game.loadLevel(lvl);
                 window.Lumina.Game.switchScreen('gameplay');
+                window.Lumina.Game.loadLevel(lvl);
               }
               window.Lumina.ModalManager.close();
             };
@@ -120,8 +120,8 @@ window.Lumina.DialogTemplates = {
 
           item.querySelector('.btn-play-custom').onclick = () => {
             window.Lumina.LevelRegistry.loadCustomLevel(cLvl);
-            window.Lumina.Game.loadLevel(cLvl);
             window.Lumina.Game.switchScreen('gameplay');
+            window.Lumina.Game.loadLevel(cLvl);
             window.Lumina.ModalManager.close();
           };
 
@@ -205,4 +205,4 @@ window.Lumina.DialogTemplates = {
       }
     }
   }
-};  
+};

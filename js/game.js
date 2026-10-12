@@ -11,7 +11,6 @@ window.Lumina.Game = {
   isPreviewMode: false,
 
   async init() {
-    // Resolve all campaign levels before binding screens
     if (window.Lumina.LevelRegistry?.ensureLoaded) {
       await window.Lumina.LevelRegistry.ensureLoaded();
     }
@@ -123,10 +122,12 @@ window.Lumina.Game = {
       if (window.Lumina.EditorTransform) window.Lumina.EditorTransform.target = null;
     }
 
+    if (window.Lumina.Renderer?.resize) window.Lumina.Renderer.resize();
     if (window.Lumina.Renderer?.resetCamera) window.Lumina.Renderer.resetCamera();
   },
 
   loadLevel(levelData) {
+    if (!levelData) return;
     this.currentLevel = levelData;
     this.isLevelCleared = false;
     this.currentElements = JSON.parse(JSON.stringify(levelData.initialPlacements || []));

@@ -1,18 +1,12 @@
 window.Lumina = window.Lumina || {};
 
 window.Lumina.LevelRegistry = {
+  maxLevel: 13,
   levels: [],
   currentLevelIndex: 0,
   isCustomLevelMode: false,
   activeCustomLevel: null,
   _loadPromise: null,
-
-  // Baseline campaign level filenames
-  manifest: [
-    'level-01.js', 'level-02.js', 'level-03.js', 'level-04.js',
-    'level-05.js', 'level-06.js', 'level-07.js', 'level-08.js',
-    'level-09.js', 'level-10.js', 'level-11.js', 'level-12.js'
-  ],
 
   register(levelData) {
     const exists = this.levels.some((l) => l.id === levelData.id);
@@ -36,18 +30,13 @@ window.Lumina.LevelRegistry = {
   },
 
   async loadLevels() {
-    // 1. Parallel loading of all known baseline manifest levels
-    await Promise.all(this.manifest.map((f) => this.loadScript(`js/data/levels/${f}`)));
-
-    // 2. Auto-discovery probing for additional levels (level-13.js, level-14.js...)
-    let nextId = this.levels.length + 1;
-    while (nextId <= 99) {
-      const num = nextId < 10 ? `0${nextId}` : `${nextId}`;
-      const found = await this.loadScript(`js/data/levels/level-${num}.js`);
-      if (!found) break;
-      nextId++;
+    const count = this.maxLevel || 13;
+    const promises = [];
+    for (let i = 1; i <= count; i++) {
+      const num = i < 10 ? `0${i}` : `${i}`;
+      promises.push(this.loadScript(`js/data/levels/level-${num}.js`));
     }
-
+    await Promise.all(promises);
     return this.levels;
   },
 

@@ -24,6 +24,8 @@ window.Lumina.Renderer = {
     const parent = this.canvas.parentElement;
     if (!parent) return;
     const rect = parent.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+
     const level = window.Lumina.Game?.currentLevel;
     this.roomW = (level && level.width) || window.Lumina.Constants.ROOM_WIDTH;
     this.roomH = (level && level.height) || window.Lumina.Constants.ROOM_HEIGHT;
@@ -44,6 +46,8 @@ window.Lumina.Renderer = {
     const parent = this.canvas.parentElement;
     if (!parent) return;
     const rect = parent.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+
     this.dpr = Math.min(window.devicePixelRatio || 1, window.Lumina.Constants.MAX_DPR);
 
     this.canvas.width = Math.floor(rect.width * this.dpr);
@@ -53,17 +57,10 @@ window.Lumina.Renderer = {
     this.roomW = (level && level.width) || window.Lumina.Constants.ROOM_WIDTH;
     this.roomH = (level && level.height) || window.Lumina.Constants.ROOM_HEIGHT;
 
-    const prevBase = this.baseScale || 1;
     this.baseScale = Math.min(rect.width / this.roomW, rect.height / this.roomH);
-
-    if (this.offsetX === 0 && this.offsetY === 0) {
-      this.scale = this.baseScale * this.zoom;
-      this.offsetX = (rect.width - this.roomW * this.scale) / 2;
-      this.offsetY = (rect.height - this.roomH * this.scale) / 2;
-    } else {
-      const ratio = this.baseScale / prevBase;
-      this.scale = this.baseScale * this.zoom;
-    }
+    this.scale = this.baseScale * this.zoom;
+    this.offsetX = (rect.width - this.roomW * this.scale) / 2;
+    this.offsetY = (rect.height - this.roomH * this.scale) / 2;
   },
 
   zoomAt(screenX, screenY, factor) {
@@ -119,7 +116,6 @@ window.Lumina.Renderer = {
   },
 
   drawTacticalGrid(ctx) {
-    // 1. Minor Subgrid (Step: 20px)
     ctx.strokeStyle = 'rgba(56, 189, 248, 0.032)';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -135,7 +131,6 @@ window.Lumina.Renderer = {
     }
     ctx.stroke();
 
-    // 2. Major Tactical Grid (Step: 100px)
     ctx.strokeStyle = 'rgba(56, 189, 248, 0.075)';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -147,7 +142,6 @@ window.Lumina.Renderer = {
     }
     ctx.stroke();
 
-    // 3. Specular Obsidian Boundary Line
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(0, 0, this.roomW, this.roomH);
