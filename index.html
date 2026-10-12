@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="css/core/base.css">
   <link rel="stylesheet" href="css/gameplay/canvas.css">
   <link rel="stylesheet" href="css/gameplay/hud.css">
+  <link rel="stylesheet" href="css/editor/editor.css">
+  <link rel="stylesheet" href="css/editor/modal.css">
   <link rel="stylesheet" href="css/modals/dialogs.css">
   <link rel="stylesheet" href="css/modals/level-select.css">
 </head>
@@ -21,6 +23,7 @@
         <div class="menu-actions">
           <button id="btn-menu-play" class="hud-btn hud-btn-primary">Play Levels</button>
           <button id="btn-menu-sandbox" class="hud-btn">Sandbox</button>
+          <button id="btn-menu-editor" class="hud-btn">Level Editor</button>
           <button id="btn-menu-levels" class="hud-btn">Levels</button>
           <button id="btn-menu-help" class="hud-btn">Manual</button>
           <button id="btn-menu-clear" class="hud-btn btn-danger" type="button">Clear Memory</button>
@@ -28,7 +31,7 @@
       </div>
     </section>
 
-    <!-- Gameplay Screen (Clean Full-Screen Layout) -->
+    <!-- Gameplay Screen -->
     <main id="screen-gameplay" class="view-screen hidden">
       <div id="canvas-container" class="canvas-container">
         <canvas id="viewport-canvas"></canvas>
@@ -48,13 +51,10 @@
         </div>
       </div>
 
-      <!-- Top Header Bar -->
       <header id="game-header" class="game-header">
         <div class="header-left">
-          <button id="btn-hdr-menu" class="hud-btn" aria-label="Menu">Menu</button>
-          <div class="header-level-info">
-            <span id="hdr-level-title" class="title">Level 1</span>
-          </div>
+          <button id="btn-hdr-menu" class="hud-btn">Menu</button>
+          <div class="header-level-info"><span id="hdr-level-title" class="title">Level 1</span></div>
         </div>
         <div class="header-center">
           <button id="btn-run-check" class="hud-btn hud-btn-primary btn-run" type="button">
@@ -68,13 +68,12 @@
         </div>
         <div class="header-right">
           <div id="pointer-coord-display" class="pointer-coord-badge">X: --- Y: ---</div>
-          <button id="btn-hdr-reset" class="hud-btn" aria-label="Reset Level">Reset</button>
-          <button id="btn-hdr-levels" class="hud-btn" aria-label="Select Level">Levels</button>
-          <button id="btn-hdr-audio" class="hud-btn" aria-label="Audio Toggle">Sound: On</button>
+          <button id="btn-hdr-reset" class="hud-btn">Reset</button>
+          <button id="btn-hdr-levels" class="hud-btn">Levels</button>
+          <button id="btn-hdr-audio" class="hud-btn">Sound: On</button>
         </div>
       </header>
 
-      <!-- Bottom Optical Equipment Dock -->
       <footer id="game-toolbar" class="game-toolbar">
         <div class="toolbar-wrapper">
           <span class="toolbar-title">PIECES</span>
@@ -83,7 +82,42 @@
       </footer>
     </main>
 
-    <!-- Modal Mount Root -->
+    <!-- Level Editor Screen (Isolated) -->
+    <section id="screen-editor" class="view-screen hidden">
+      <div class="editor-shell">
+        <header class="editor-header">
+          <div style="display: flex; gap: 8px;">
+            <button id="btn-editor-exit" class="hud-btn">Exit</button>
+            <button id="btn-editor-code" class="hud-btn">Level Code</button>
+            <button id="btn-editor-save" class="hud-btn">Save Level</button>
+          </div>
+          <button id="btn-editor-test" class="hud-btn hud-btn-primary">Preview Level</button>
+        </header>
+        <div class="editor-workspace">
+          <aside class="editor-tools-sidebar">
+            <span style="font-size: 11px; font-weight: 800; color: var(--color-moon-mist); padding: 4px;">PLACEMENT</span>
+            <button class="editor-tool-btn active" data-tool="select">Select / Move</button>
+            <button class="editor-tool-btn" data-tool="emitter">Add Emitter</button>
+            <button class="editor-tool-btn" data-tool="sensor">Add Sensor</button>
+            <button class="editor-tool-btn" data-tool="wall">Add Wall</button>
+            <button class="editor-tool-btn" data-tool="black_hole">Add Black Hole</button>
+          </aside>
+          <div style="position: relative; overflow: hidden;">
+            <div id="editor-test-badge" class="test-mode-badge hidden">PREVIEW ACTIVE</div>
+          </div>
+          <aside class="editor-inspector">
+            <div class="inspector-section">
+              <div class="inspector-title">MAP SETTINGS</div>
+              <div class="prop-field"><label>Level Title</label><input type="text" id="prop-level-title" class="prop-input" style="width: 130px;" value="Custom Level"></div>
+              <div class="prop-field"><label>Width (Px)</label><input type="number" id="prop-map-width" class="prop-input" value="1000" min="600" max="1800"></div>
+              <div class="prop-field"><label>Height (Px)</label><input type="number" id="prop-map-height" class="prop-input" value="700" min="500" max="1400"></div>
+            </div>
+            <div id="inspector-dynamic-props"></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
     <div id="modal-root" class="modal-root"></div>
   </div>
 
@@ -111,7 +145,7 @@
 
   <script src="js/systems/render/renderer.js"></script>
   <script src="js/systems/render/beams.js"></script>
-  <script src="js/systems/render/optics-view.js"></script>
+  <script src="js/systems/render/scene.js"></script>
 
   <script src="js/ui/controls/pointer.js"></script>
   <script src="js/ui/controls/touch.js"></script>
@@ -119,6 +153,11 @@
   <script src="js/ui/hud/toolbar.js"></script>
   <script src="js/ui/modals/modal-manager.js"></script>
   <script src="js/ui/modals/dialogs.js"></script>
+
+  <script src="js/editor/io.js"></script>
+  <script src="js/editor/ui.js"></script>
+  <script src="js/editor/editor.js"></script>
+
   <script src="js/game.js"></script>
 </body>
 </html>

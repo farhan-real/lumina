@@ -4,6 +4,8 @@ window.Lumina.LevelRegistry = {
   levels: [],
   currentLevelIndex: 0,
   isSandboxMode: false,
+  isCustomLevelMode: false,
+  activeCustomLevel: null,
 
   register(levelData) {
     this.levels.push(levelData);
@@ -14,6 +16,9 @@ window.Lumina.LevelRegistry = {
   },
 
   getCurrent() {
+    if (this.isCustomLevelMode && this.activeCustomLevel) {
+      return this.activeCustomLevel;
+    }
     if (this.isSandboxMode) {
       return this.getSandboxLevel();
     }
@@ -22,9 +27,17 @@ window.Lumina.LevelRegistry = {
 
   setCurrentIndex(index) {
     this.isSandboxMode = false;
+    this.isCustomLevelMode = false;
+    this.activeCustomLevel = null;
     if (index >= 0 && index < this.levels.length) {
       this.currentLevelIndex = index;
     }
+  },
+
+  loadCustomLevel(levelObj) {
+    this.isSandboxMode = false;
+    this.isCustomLevelMode = true;
+    this.activeCustomLevel = levelObj;
   },
 
   isUnlocked(index) {
@@ -33,7 +46,7 @@ window.Lumina.LevelRegistry = {
   },
 
   markCompleted(index) {
-    if (!this.isSandboxMode) {
+    if (!this.isSandboxMode && !this.isCustomLevelMode) {
       localStorage.setItem('lumina_level_' + index, 'cleared');
     }
   },
@@ -42,35 +55,28 @@ window.Lumina.LevelRegistry = {
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('lumina_')) {
-        keysToRemove.push(key);
-      }
+      if (key && key.startsWith('lumina_level_')) keysToRemove.push(key);
     }
-    keysToRemove.forEach((k) => localStorage.removeItem(k));
+    keysToRemove.forEach(k => localStorage.removeItem(k));
     this.currentLevelIndex = 0;
-    this.isSandboxMode = false;
   },
 
   getSandboxLevel() {
     return {
       id: 999,
       title: 'Sandbox',
-      desc: 'Freely experiment with any optical piece.',
-      emitters: [
-        { x: 120, y: 350, angle: 0, color: 'white', movable: true }
-      ],
+      width: 1000,
+      height: 700,
+      emitters: [{ x: 120, y: 350, angle: 0, color: 'white', movable: true }],
       sensors: [
-        { id: 's1', x: 880, y: 250, requiredColor: 'any', active: false },
-        { id: 's2', x: 880, y: 450, requiredColor: 'any', active: false }
+        { id: 's1', x: 880, y: 250, requiredColor: 'any', requiredBeams: 1, active: false },
+        { id: 's2', x: 880, y: 450, requiredColor: 'any', requiredBeams: 1, active: false }
       ],
       staticElements: [],
       inventory: [
-        { type: 'mirror', count: 4 },
-        { type: 'prism', count: 2 },
-        { type: 'lens_convex', count: 2 },
-        { type: 'lens_concave', count: 2 },
-        { type: 'beam_splitter', count: 2 },
-        { type: 'wall', count: 4 }
+        { type: 'mirror', count: 4 }, { type: 'prism', count: 2 },
+        { type: 'lens_convex', count: 2 }, { type: 'lens_concave', count: 2 },
+        { type: 'beam_splitter', count: 2 }, { type: 'wall', count: 4 }
       ],
       initialPlacements: []
     };

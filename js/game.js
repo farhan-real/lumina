@@ -19,6 +19,7 @@ window.Lumina.Game = {
     window.Lumina.Pointer.init(canvas.parentElement);
     window.Lumina.HUDHeader.init();
     window.Lumina.HUDToolbar.init();
+    window.Lumina.Editor.init();
 
     document.getElementById('btn-menu-play').addEventListener('click', () => {
       window.Lumina.Synth.ensureContext();
@@ -31,6 +32,12 @@ window.Lumina.Game = {
       window.Lumina.LevelRegistry.isSandboxMode = true;
       this.switchScreen('gameplay');
       this.loadLevel(window.Lumina.LevelRegistry.getSandboxLevel());
+    });
+
+    document.getElementById('btn-menu-editor').addEventListener('click', () => {
+      window.Lumina.Synth.ensureContext();
+      this.switchScreen('editor');
+      window.Lumina.Editor.openNew();
     });
 
     document.getElementById('btn-menu-levels').addEventListener('click', () => {
@@ -62,15 +69,27 @@ window.Lumina.Game = {
     this.currentScreen = screenName;
     const menu = document.getElementById('screen-menu');
     const play = document.getElementById('screen-gameplay');
+    const editor = document.getElementById('screen-editor');
 
-    if (screenName === 'menu') {
-      menu.classList.remove('hidden');
-      play.classList.add('hidden');
-    } else {
-      menu.classList.add('hidden');
-      play.classList.remove('hidden');
-      window.Lumina.Renderer.resize();
+    menu.classList.toggle('hidden', screenName !== 'menu');
+    play.classList.toggle('hidden', screenName !== 'gameplay');
+    editor.classList.toggle('hidden', screenName !== 'editor');
+
+    if (screenName === 'editor') {
+      const canvas = document.getElementById('viewport-canvas');
+      const container = document.querySelector('.editor-workspace > div');
+      if (canvas && container && canvas.parentElement !== container) {
+        container.appendChild(canvas.parentElement);
+      }
+    } else if (screenName === 'gameplay') {
+      const canvas = document.getElementById('viewport-canvas');
+      const container = document.getElementById('screen-gameplay');
+      if (canvas && container && canvas.parentElement !== container) {
+        container.insertBefore(canvas.parentElement, container.firstChild);
+      }
     }
+
+    window.Lumina.Renderer.resize();
   },
 
   loadLevel(levelData) {
@@ -145,7 +164,7 @@ window.Lumina.Game = {
 
   startLoop() {
     const loop = () => {
-      if (this.currentScreen === 'gameplay') {
+      if (this.currentScreen === 'gameplay' || this.currentScreen === 'editor') {
         this.update();
         this.render();
       }
@@ -160,7 +179,9 @@ window.Lumina.Game = {
       this.currentElements,
       this.currentSensors
     );
-    window.Lumina.HUDHeader.updateSensorStates(this.currentSensors);
+    if (this.currentScreen === 'gameplay') {
+      window.Lumina.HUDHeader.updateSensorStates(this.currentSensors);
+    }
   },
 
   render() {

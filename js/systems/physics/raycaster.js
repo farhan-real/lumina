@@ -25,6 +25,7 @@ window.Lumina.Raycaster = {
       sensors[s].active = false;
       sensors[s].currentHits = 0;
       sensors[s].hitSources = [];
+      sensors[s].receivedColors = [];
     }
 
     const hit = { t: 0, x: 0, y: 0, nx: 0, ny: 0 };
@@ -47,9 +48,31 @@ window.Lumina.Raycaster = {
       }
     }
 
+    // Evaluate single color or multi-color mix requirement
     for (let s = 0; s < sensors.length; s++) {
-      const reqBeams = sensors[s].requiredBeams || 1;
-      sensors[s].active = sensors[s].currentHits >= reqBeams;
+      const sens = sensors[s];
+      let satisfied = true;
+
+      if (sens.requiredMix && sens.requiredMix.length > 0) {
+        const rec = [...sens.receivedColors];
+        for (let m = 0; m < sens.requiredMix.length; m++) {
+          const reqColor = sens.requiredMix[m];
+          if (reqColor !== 'any') {
+            const foundIdx = rec.indexOf(reqColor);
+            if (foundIdx === -1) { satisfied = false; break; }
+            rec.splice(foundIdx, 1);
+          }
+        }
+      } else {
+        const req = sens.requiredColor || 'any';
+        if (req !== 'any' && !sens.receivedColors.includes(req)) {
+          satisfied = false;
+        }
+      }
+
+      const reqBeams = sens.requiredBeams || (sens.requiredMix ? sens.requiredMix.length : 1);
+      if (sens.currentHits < reqBeams) satisfied = false;
+      sens.active = satisfied;
     }
   },
 
@@ -67,10 +90,8 @@ window.Lumina.Raycaster = {
       if (this.intersect(ox, oy, dx, dy, el, hitH)) {
         if (hitH.t < nearestT) {
           nearestT = hitH.t;
-          hitX = hitH.x;
-          hitY = hitH.y;
-          hitNx = hitH.nx;
-          hitNy = hitH.ny;
+          hitX = hitH.x; hitY = hitH.y;
+          hitNx = hitH.nx; hitNy = hitH.ny;
           hitElem = el;
         }
       }
@@ -177,23 +198,20 @@ window.Lumina.Raycaster = {
       const sens = sensors[s];
       const dist = this.distToSegment(sens.x, sens.y, x1, y1, x2, y2);
       if (dist <= window.Lumina.Constants.SENSOR_RADIUS) {
-        const req = sens.requiredColor || 'any';
-        let match = false;
-        if (req === 'any') match = true;
-        else if (req === 'red' && r > 0.6 && b < 0.5) match = true;
-        else if (req === 'green' && g > 0.6 && r < 0.5) match = true;
-        else if (req === 'blue' && b > 0.6 && r < 0.5) match = true;
-        else if (req === 'cyan' && g > 0.6 && b > 0.6) match = true;
-        else if (req === 'amber' && r > 0.7 && g > 0.4) match = true;
-        else if (req === 'violet' && r > 0.5 && b > 0.6) match = true;
+        let beamColor = 'any';
+        if (r > 0.6 && b < 0.5 && g < 0.5) beamColor = 'red';
+        else if (g > 0.6 && r < 0.5 && b < 0.5) beamColor = 'green';
+        else if (b > 0.6 && r < 0.5 && g < 0.5) beamColor = 'blue';
+        else if (g > 0.6 && b > 0.6 && r < 0.5) beamColor = 'cyan';
+        else if (r > 0.7 && g > 0.4 && b < 0.4) beamColor = 'amber';
+        else if (r > 0.5 && b > 0.6 && g < 0.5) beamColor = 'violet';
 
-        if (match) {
-          const angleStep = Math.round(Math.atan2(y2 - y1, x2 - x1) * 10);
-          const hitKey = sourceId * 1000 + angleStep;
-          if (!sens.hitSources.includes(hitKey)) {
-            sens.hitSources.push(hitKey);
-            sens.currentHits++;
-          }
+        const angleStep = Math.round(Math.atan2(y2 - y1, x2 - x1) * 10);
+        const hitKey = sourceId * 1000 + angleStep;
+        if (!sens.hitSources.includes(hitKey)) {
+          sens.hitSources.push(hitKey);
+          sens.currentHits++;
+          sens.receivedColors.push(beamColor);
         }
       }
     }

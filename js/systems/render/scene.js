@@ -1,6 +1,6 @@
 window.Lumina = window.Lumina || {};
 
-window.Lumina.OpticsView = {
+window.Lumina.SceneView = {
   renderScene(ctx, emitters, elements, sensors) {
     this.renderEmitters(ctx, emitters);
     this.renderSensors(ctx, sensors);
@@ -41,7 +41,8 @@ window.Lumina.OpticsView = {
     for (let i = 0; i < sensors.length; i++) {
       const s = sensors[i];
       const req = s.requiredColor || 'any';
-      const reqBeams = s.requiredBeams || 1;
+      const hasMix = s.requiredMix && s.requiredMix.length > 0;
+      const reqBeams = s.requiredBeams || (hasMix ? s.requiredMix.length : 1);
       const hits = s.currentHits || 0;
       const themeColor = colorMap[req] || '#ffffff';
       const isCharging = hits > 0 && !s.active;
@@ -66,22 +67,24 @@ window.Lumina.OpticsView = {
       ctx.arc(0, 0, 22, 0, Math.PI * 2);
       ctx.fill();
 
-      // 3. Wavelength Color Ring
-      ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : themeColor);
-      ctx.lineWidth = s.active ? 3 : 2;
-      ctx.shadowColor = s.active ? '#00f5a0' : themeColor;
-      ctx.shadowBlur = s.active ? 15 : (isCharging ? 8 : 4);
-      ctx.beginPath();
-      ctx.arc(0, 0, 22, 0, Math.PI * 2);
-      ctx.stroke();
+      // 3. Spectral Wavelength Rings
+      if (hasMix && s.requiredMix.length >= 2) {
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = colorMap[s.requiredMix[0]] || '#ffffff';
+        ctx.beginPath(); ctx.arc(0, 0, 22, Math.PI, 0); ctx.stroke();
+        ctx.strokeStyle = colorMap[s.requiredMix[1]] || '#ffffff';
+        ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI); ctx.stroke();
+      } else {
+        ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : themeColor);
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.stroke();
+      }
 
       if (reqBeams > 1) {
+        ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : themeColor);
         ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(0, 0, 14, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.stroke();
       }
-      ctx.shadowBlur = 0;
 
       // 4. Central Receptor Core
       ctx.fillStyle = s.active ? '#ffffff' : (isCharging ? '#fbbf24' : themeColor);
@@ -89,11 +92,14 @@ window.Lumina.OpticsView = {
       ctx.arc(0, 0, s.active ? 8.5 : 5.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // 5. Spectral Badge with Convergence Counter
-      let labelText = req === 'any' ? 'λ ANY' : `λ ${req.toUpperCase()}`;
-      if (reqBeams > 1) {
-        labelText += ` [${hits}/${reqBeams}]`;
+      // 5. Spectral Badge Label
+      let labelText = '';
+      if (hasMix && s.requiredMix.length > 0) {
+        labelText = 'λ ' + s.requiredMix.map(c => c.substring(0, 3).toUpperCase()).join('+');
+      } else {
+        labelText = req === 'any' ? 'λ ANY' : `λ ${req.toUpperCase()}`;
       }
+      if (reqBeams > 1) labelText += ` [${hits}/${reqBeams}]`;
 
       ctx.font = 'bold 9px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
@@ -130,8 +136,7 @@ window.Lumina.OpticsView = {
       ctx.beginPath();
       ctx.moveTo(0, -35); ctx.lineTo(35, 30); ctx.lineTo(-35, 30);
       ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.fill(); ctx.stroke();
     } else if (el.type === 'lens_convex') {
       const hh = (el.height || 160) / 2;
       ctx.fillStyle = 'rgba(0, 240, 255, 0.18)';
@@ -142,8 +147,7 @@ window.Lumina.OpticsView = {
       ctx.quadraticCurveTo(18, 0, 0, hh);
       ctx.quadraticCurveTo(-18, 0, 0, -hh);
       ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.fill(); ctx.stroke();
     } else if (el.type === 'lens_concave') {
       const hh = (el.height || 160) / 2;
       ctx.fillStyle = 'rgba(0, 240, 255, 0.14)';
@@ -155,8 +159,7 @@ window.Lumina.OpticsView = {
       ctx.lineTo(-16, hh);
       ctx.quadraticCurveTo(-5, 0, -16, -hh);
       ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.fill(); ctx.stroke();
     } else if (el.type === 'beam_splitter') {
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
       ctx.strokeRect(-25, -25, 50, 50);
@@ -177,3 +180,5 @@ window.Lumina.OpticsView = {
     ctx.restore();
   }
 };
+
+window.Lumina.OpticsView = window.Lumina.SceneView;

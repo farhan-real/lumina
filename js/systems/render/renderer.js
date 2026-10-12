@@ -7,6 +7,8 @@ window.Lumina.Renderer = {
   scale: 1,
   offsetX: 0,
   offsetY: 0,
+  roomW: 1000,
+  roomH: 700,
 
   init(canvasEl) {
     this.canvas = canvasEl;
@@ -22,12 +24,13 @@ window.Lumina.Renderer = {
     this.canvas.width = Math.floor(rect.width * this.dpr);
     this.canvas.height = Math.floor(rect.height * this.dpr);
 
-    const roomW = window.Lumina.Constants.ROOM_WIDTH;
-    const roomH = window.Lumina.Constants.ROOM_HEIGHT;
+    const level = window.Lumina.Game.currentLevel;
+    this.roomW = (level && level.width) || window.Lumina.Constants.ROOM_WIDTH;
+    this.roomH = (level && level.height) || window.Lumina.Constants.ROOM_HEIGHT;
 
-    this.scale = Math.min(rect.width / roomW, rect.height / roomH);
-    this.offsetX = (rect.width - roomW * this.scale) / 2;
-    this.offsetY = (rect.height - roomH * this.scale) / 2;
+    this.scale = Math.min(rect.width / this.roomW, rect.height / this.roomH);
+    this.offsetX = (rect.width - this.roomW * this.scale) / 2;
+    this.offsetY = (rect.height - this.roomH * this.scale) / 2;
   },
 
   screenToWorld(sx, sy) {
@@ -47,7 +50,6 @@ window.Lumina.Renderer = {
   clear() {
     const ctx = this.ctx;
     ctx.resetTransform();
-    // Pure Pitch Black Void
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -59,41 +61,37 @@ window.Lumina.Renderer = {
   },
 
   drawTacticalGrid(ctx) {
-    // 1. Minor Subgrid (Step: 20px) - Subtle guide lines
+    // 1. Minor Subgrid (Step: 20px)
     ctx.strokeStyle = 'rgba(56, 189, 248, 0.032)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    for (let x = 0; x <= 1000; x += 20) {
+    for (let x = 0; x <= this.roomW; x += 20) {
       if (x % 100 !== 0) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, 700);
+        ctx.moveTo(x, 0); ctx.lineTo(x, this.roomH);
       }
     }
-    for (let y = 0; y <= 700; y += 20) {
+    for (let y = 0; y <= this.roomH; y += 20) {
       if (y % 100 !== 0) {
-        ctx.moveTo(0, y);
-        ctx.lineTo(1000, y);
+        ctx.moveTo(0, y); ctx.lineTo(this.roomW, y);
       }
     }
     ctx.stroke();
 
-    // 2. Major Tactical Grid (Step: 100px) - Gentle reference lines
+    // 2. Major Tactical Grid (Step: 100px)
     ctx.strokeStyle = 'rgba(56, 189, 248, 0.075)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    for (let x = 0; x <= 1000; x += 100) {
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, 700);
+    for (let x = 0; x <= this.roomW; x += 100) {
+      ctx.moveTo(x, 0); ctx.lineTo(x, this.roomH);
     }
-    for (let y = 0; y <= 700; y += 100) {
-      ctx.moveTo(0, y);
-      ctx.lineTo(1000, y);
+    for (let y = 0; y <= this.roomH; y += 100) {
+      ctx.moveTo(0, y); ctx.lineTo(this.roomW, y);
     }
     ctx.stroke();
 
     // 3. Specular Obsidian Boundary Line
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
     ctx.lineWidth = 1.5;
-    ctx.strokeRect(0, 0, 1000, 700);
+    ctx.strokeRect(0, 0, this.roomW, this.roomH);
   }
 };
