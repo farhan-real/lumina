@@ -30,7 +30,7 @@ window.Lumina.Raycaster = {
 
     const hit = { t: 0, x: 0, y: 0, nx: 0, ny: 0 };
     const ref = { dx: 0, dy: 0 };
-    const lenOut = { dx: 0, dy: 0 };
+    const lenOut = { dx: 0, dy: 0, x: 0, y: 0 };
 
     for (let e = 0; e < emitters.length; e++) {
       const em = emitters[e];
@@ -78,7 +78,7 @@ window.Lumina.Raycaster = {
   cast(ox, oy, dx, dy, r, g, b, inten, depth, sourceId, elements, sensors, hitH, refH, lenOut) {
     if (depth > 20 || inten < 0.1) return;
 
-    let nearestT = 1600;
+    let nearestT = 3200;
     let hitX = ox + dx * nearestT;
     let hitY = oy + dy * nearestT;
     let hitElem = null;
@@ -113,6 +113,9 @@ window.Lumina.Raycaster = {
 
   intersect(ox, oy, dx, dy, el, out) {
     const math = window.Lumina.OpticsMath;
+    if (el.type === 'wall') {
+      return math.intersectRayBox(ox, oy, dx, dy, el.x, el.y, el.width || 30, el.height || 120, el.angle || 0, out);
+    }
     if (el.type === 'mirror' || el.type === 'beam_splitter' || el.type === 'portal') {
       const rad = (el.angle || 0) * (Math.PI / 180);
       const halfL = (el.length || el.size || 80) / 2;
@@ -128,23 +131,6 @@ window.Lumina.Raycaster = {
     }
     if (el.type === 'prism') {
       const edges = math.getPrismEdges(el.x, el.y, el.angle || 0, el.side || 70);
-      let hitAny = false;
-      let minT = 9999;
-      const temp = { t: 0, x: 0, y: 0, nx: 0, ny: 0 };
-      for (let e = 0; e < edges.length; e++) {
-        if (math.intersectRaySegment(ox, oy, dx, dy, edges[e].x1, edges[e].y1, edges[e].x2, edges[e].y2, temp)) {
-          if (temp.t < minT) {
-            minT = temp.t;
-            out.t = temp.t; out.x = temp.x; out.y = temp.y;
-            out.nx = temp.nx; out.ny = temp.ny;
-            hitAny = true;
-          }
-        }
-      }
-      return hitAny;
-    }
-    if (el.type === 'wall') {
-      const edges = math.getWallEdges(el.x, el.y, el.width || 30, el.height || 120, el.angle || 0);
       let hitAny = false;
       let minT = 9999;
       const temp = { t: 0, x: 0, y: 0, nx: 0, ny: 0 };
@@ -189,6 +175,13 @@ window.Lumina.Raycaster = {
       const outDx = Math.cos(outAngle);
       const outDy = Math.sin(outAngle);
       this.cast(hx + outDx * 3, hy + outDy * 3, outDx, outDy, r, g, b, inten, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
+    } else if (el.type === 'portal') {
+      const allPortals = elements.filter(item => item.type === 'portal');
+      const partner = allPortals.find(item => (item.linkId && item.linkId === el.id) || (el.linkId && item.id === el.linkId) || (item !== el));
+      if (partner) {
+        window.Lumina.Geodesic.mapPortal(hx, hy, dx, dy, el, partner, lenOut);
+        this.cast(lenOut.x, lenOut.y, lenOut.dx, lenOut.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
+      }
     }
   },
 

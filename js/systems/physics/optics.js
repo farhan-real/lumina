@@ -31,35 +31,95 @@ window.Lumina.OpticsMath = {
     return false;
   },
 
-  getWallEdges(x, y, width, height, angleDeg) {
+  // Solid Oriented Bounding Box (OBB) Slab Test for Walls
+  intersectRayBox(ox, oy, dx, dy, cx, cy, width, height, angleDeg, out) {
     const rad = (angleDeg || 0) * (Math.PI / 180);
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
+    const cosA = Math.cos(rad);
+    const sinA = Math.sin(rad);
     const hw = (width || 30) / 2;
     const hh = (height || 120) / 2;
 
-    const toWorld = (lx, ly) => ({
-      x: x + lx * cos - ly * sin,
-      y: y + lx * sin + ly * cos
-    });
+    // Transform ray into local box coordinates
+    const relX = ox - cx;
+    const relY = oy - cy;
+    const lox = relX * cosA + relY * sinA;
+    const loy = -relX * sinA + relY * cosA;
+    const ldx = dx * cosA + dy * sinA;
+    const ldy = -dx * sinA + dy * cosA;
 
-    const p1 = toWorld(-hw, -hh);
-    const p2 = toWorld(hw, -hh);
-    const p3 = toWorld(hw, hh);
-    const p4 = toWorld(-hw, hh);
+    // Inside-box check: terminate immediately if ray originates inside
+    if (Math.abs(lox) <= hw && Math.abs(loy) <= hh) {
+      out.t = 0.001;
+      out.x = ox;
+      out.y = oy;
+      out.nx = -dx;
+      out.ny = -dy;
+      return true;
+    }
 
-    return [
-      { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y },
-      { x1: p2.x, y1: p2.y, x2: p3.x, y2: p3.y },
-      { x1: p3.x, y1: p3.y, x2: p4.x, y2: p4.y },
-      { x1: p4.x, y1: p4.y, x2: p1.x, y2: p1.y }
-    ];
+    let tmin = -Infinity;
+    let tmax = Infinity;
+    let hitNormalLocalX = 0;
+    let hitNormalLocalY = 0;
+
+    // X-Axis Slab
+    if (Math.abs(ldx) > 1e-9) {
+      let t1 = (-hw - lox) / ldx;
+      let t2 = (hw - lox) / ldx;
+      let n1 = -1;
+      if (t1 > t2) {
+        const tmp = t1; t1 = t2; t2 = tmp;
+        n1 = 1;
+      }
+      if (t1 > tmin) {
+        tmin = t1;
+        hitNormalLocalX = n1;
+        hitNormalLocalY = 0;
+      }
+      tmax = Math.min(tmax, t2);
+      if (tmin > tmax) return false;
+    } else {
+      if (Math.abs(lox) > hw) return false;
+    }
+
+    // Y-Axis Slab
+    if (Math.abs(ldy) > 1e-9) {
+      let t1 = (-hh - loy) / ldy;
+      let t2 = (hh - loy) / ldy;
+      let n1 = -1;
+      if (t1 > t2) {
+        const tmp = t1; t1 = t2; t2 = tmp;
+        n1 = 1;
+      }
+      if (t1 > tmin) {
+        tmin = t1;
+        hitNormalLocalX = 0;
+        hitNormalLocalY = n1;
+      }
+      tmax = Math.min(tmax, t2);
+      if (tmin > tmax) return false;
+    } else {
+      if (Math.abs(loy) > hh) return false;
+    }
+
+    if (tmax < 0.05) return false;
+    const t = tmin > 0.05 ? tmin : tmax;
+    if (t <= 0.05) return false;
+
+    out.t = t;
+    out.x = ox + t * dx;
+    out.y = oy + t * dy;
+
+    // Transform normal back to world coordinates
+    out.nx = hitNormalLocalX * cosA - hitNormalLocalY * sinA;
+    out.ny = hitNormalLocalX * sinA + hitNormalLocalY * cosA;
+    return true;
   },
 
   getPrismEdges(x, y, angleDeg, side) {
     const rad = angleDeg * (Math.PI / 180);
-    const h = side * Math.sqrt(3) / 2;
-    const p1x = 0, p1y = -2 * h / 3;
+    const h = (side * Math.sqrt(3)) / 2;
+    const p1x = 0, p1y = (-2 * h) / 3;
     const p2x = side / 2, p2y = h / 3;
     const p3x = -side / 2, p3y = h / 3;
 
