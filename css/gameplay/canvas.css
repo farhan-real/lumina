@@ -1,0 +1,165 @@
+.canvas-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-pitch-black);
+  overflow: hidden;
+  z-index: var(--z-canvas);
+}
+
+#viewport-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background-color: var(--color-pitch-black);
+}
+
+/* Obsidian Glass Rotation Gizmo */
+.gizmo-rotation {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: var(--z-gizmo);
+}
+
+.gizmo-rotation.hidden {
+  display: none !important;
+}
+
+/* Floating Real-Time Coordinate Badge */
+.gizmo-coord-badge {
+  position: absolute;
+  bottom: 115%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(3, 7, 18, 0.95);
+  border: 1px solid var(--theme-accent);
+  border-top: 1px solid #ffffff;
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-family: var(--font-dotdigital);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-cyan);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8), 0 0 10px var(--theme-accent-glow);
+}
+
+.gizmo-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px dashed rgba(56, 189, 248, 0.7);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+}
+
+.gizmo-handle {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  background: var(--liquid-glass-bg);
+  border: 2px solid var(--color-cyan);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 14px var(--theme-accent-glow);
+  pointer-events: auto;
+  cursor: grab;
+}
+
+.gizmo-handle:active {
+  cursor: grabbing;
+}
+
+.gizmo-angle-control {
+  position: absolute;
+  top: 114%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--liquid-glass-bg);
+  padding: 5px 10px;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--liquid-glass-border);
+  border-top: 1px solid var(--liquid-glass-border-top);
+  box-shadow: var(--liquid-glass-shadow);
+  pointer-events: auto;
+}
+
+.gizmo-angle-input {
+  width: 52px;
+  height: 32px;
+  background: var(--glass-3d-well-bg);
+  border: 1px solid var(--glass-3d-well-border);
+  border-radius: 5px;
+  color: var(--color-cyan);
+  font-family: var(--font-dotdigital);
+  font-size: 15px;
+  font-weight: 800;
+  text-align: center;
+  outline: none;
+  appearance: textfield;
+  -webkit-appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.gizmo-angle-input::-webkit-outer-spin-button,
+.gizmo-angle-input::-webkit-inner-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.gizmo-angle-input:focus {
+  border-color: var(--color-cyan);
+}
+
+.gizmo-unit {
+  font-size: 14px;
+  font-weight: 800;
+  font-family: var(--font-dotdigital);
+  color: var(--color-cyan);
+}
+
+.btn-step {
+  background: var(--glass-3d-btn-bg);
+  border: 1px solid var(--liquid-glass-border);
+  border-top: 1px solid var(--liquid-glass-border-top);
+  border-radius: 5px;
+  color: var(--color-ice-highlight);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-dotdigital);
+  height: 32px;
+  padding: 0 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-step:hover {
+  background: var(--glass-3d-btn-bg-hover);
+  border-color: var(--theme-accent);
+}
+
+.btn-remove {
+  color: var(--color-red);
+  margin-left: 2px;
+}
+
+.btn-remove:hover {
+  background: rgba(244, 63, 94, 0.2);
+  border-color: var(--color-red);
+}

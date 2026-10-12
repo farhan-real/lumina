@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Lumina - Light Puzzle Game</title>
+  <link rel="stylesheet" href="css/core/tokens.css">
+  <link rel="stylesheet" href="css/core/base.css">
+  <link rel="stylesheet" href="css/gameplay/canvas.css">
+  <link rel="stylesheet" href="css/gameplay/hud.css">
+  <link rel="stylesheet" href="css/modals/dialogs.css">
+  <link rel="stylesheet" href="css/modals/level-select.css">
+</head>
+<body>
+  <div id="app-root" class="app-root">
+    <!-- Main Menu Screen (Isolated) -->
+    <section id="screen-menu" class="view-screen">
+      <div class="menu-card">
+        <h1 class="brand-title">LUMINA</h1>
+        <p class="brand-desc">Guide and bend beams of light using precision mirrors, prisms, lenses, and gravity to energize every target.</p>
+        <div class="menu-actions">
+          <button id="btn-menu-play" class="hud-btn hud-btn-primary">Play Levels</button>
+          <button id="btn-menu-sandbox" class="hud-btn">Sandbox</button>
+          <button id="btn-menu-levels" class="hud-btn">Levels</button>
+          <button id="btn-menu-help" class="hud-btn">Manual</button>
+          <button id="btn-menu-clear" class="hud-btn btn-danger" type="button">Clear Memory</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gameplay Screen (Clean Full-Screen Layout) -->
+    <main id="screen-gameplay" class="view-screen hidden">
+      <div id="canvas-container" class="canvas-container">
+        <canvas id="viewport-canvas"></canvas>
+        <div id="gizmo-rotation" class="gizmo-rotation hidden">
+          <div id="gizmo-coords" class="gizmo-coord-badge">X: 500 Y: 350</div>
+          <div class="gizmo-ring"></div>
+          <div class="gizmo-handle"></div>
+          <div class="gizmo-angle-control">
+            <button id="btn-angle-sub" class="btn-step" type="button">-5°</button>
+            <input type="number" id="gizmo-angle-input" class="gizmo-angle-input" min="0" max="359" value="0">
+            <span class="gizmo-unit">°</span>
+            <button id="btn-angle-add" class="btn-step" type="button">+5°</button>
+            <button id="btn-gizmo-remove" class="btn-step btn-remove" type="button" title="Remove piece (Delete)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Header Bar -->
+      <header id="game-header" class="game-header">
+        <div class="header-left">
+          <button id="btn-hdr-menu" class="hud-btn" aria-label="Menu">Menu</button>
+          <div class="header-level-info">
+            <span id="hdr-level-title" class="title">Level 1</span>
+          </div>
+        </div>
+        <div class="header-center">
+          <button id="btn-run-check" class="hud-btn hud-btn-primary btn-run" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>Run Test</span>
+          </button>
+          <div id="sensor-progress" class="sensor-progress">
+            <span class="label">Targets:</span>
+            <div id="sensor-indicators" class="sensor-indicators"></div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div id="pointer-coord-display" class="pointer-coord-badge">X: --- Y: ---</div>
+          <button id="btn-hdr-reset" class="hud-btn" aria-label="Reset Level">Reset</button>
+          <button id="btn-hdr-levels" class="hud-btn" aria-label="Select Level">Levels</button>
+          <button id="btn-hdr-audio" class="hud-btn" aria-label="Audio Toggle">Sound: On</button>
+        </div>
+      </header>
+
+      <!-- Bottom Optical Equipment Dock -->
+      <footer id="game-toolbar" class="game-toolbar">
+        <div class="toolbar-wrapper">
+          <span class="toolbar-title">PIECES</span>
+          <div id="inventory-tray" class="inventory-tray"></div>
+        </div>
+      </footer>
+    </main>
+
+    <!-- Modal Mount Root -->
+    <div id="modal-root" class="modal-root"></div>
+  </div>
+
+  <!-- Topological Script Pipeline -->
+  <script src="js/data/rules/constants.js"></script>
+  <script src="js/data/rules/elements.js"></script>
+  <script src="js/data/levels/level-registry.js"></script>
+  <script src="js/data/levels/level-01.js"></script>
+  <script src="js/data/levels/level-02.js"></script>
+  <script src="js/data/levels/level-03.js"></script>
+  <script src="js/data/levels/level-04.js"></script>
+  <script src="js/data/levels/level-05.js"></script>
+  <script src="js/data/levels/level-06.js"></script>
+  <script src="js/data/levels/level-07.js"></script>
+  <script src="js/data/levels/level-08.js"></script>
+  <script src="js/data/levels/level-09.js"></script>
+  <script src="js/data/levels/level-10.js"></script>
+
+  <script src="js/systems/audio/synth.js"></script>
+  <script src="js/systems/audio/sfx.js"></script>
+  <script src="js/systems/physics/optics.js"></script>
+  <script src="js/systems/physics/lenses.js"></script>
+  <script src="js/systems/physics/geodesic.js"></script>
+  <script src="js/systems/physics/raycaster.js"></script>
+
+  <script src="js/systems/render/renderer.js"></script>
+  <script src="js/systems/render/beams.js"></script>
+  <script src="js/systems/render/optics-view.js"></script>
+
+  <script src="js/ui/controls/pointer.js"></script>
+  <script src="js/ui/controls/touch.js"></script>
+  <script src="js/ui/hud/header.js"></script>
+  <script src="js/ui/hud/toolbar.js"></script>
+  <script src="js/ui/modals/modal-manager.js"></script>
+  <script src="js/ui/modals/dialogs.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+.modal-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-modal);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  pointer-events: auto;
+}
+
+.modal-backdrop.hidden {
+  display: none !important;
+}
+
+/* Spacious Modal Panel */
+.modal-panel {
+  width: 100%;
+  max-width: 720px;
+  max-height: 88vh;
+  background: var(--liquid-glass-bg);
+  border: 1px solid var(--liquid-glass-border);
+  border-top: 1px solid var(--liquid-glass-border-top);
+  border-bottom: 2px solid var(--theme-accent);
+  border-radius: var(--radius-modal);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.98), 0 0 30px rgba(56, 189, 248, 0.2);
+}
+
+.modal-header {
+  padding: 18px 26px;
+  border-bottom: 1px solid var(--liquid-glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-family: var(--font-aeonikpro);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #ffffff;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--color-moon-mist);
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #ffffff;
+}
+
+.modal-body {
+  padding: 26px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Enlarged Manual Cards */
+.manual-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.help-card {
+  background: var(--glass-3d-card-bg);
+  border: 1px solid var(--glass-3d-card-border);
+  border-top: 1px solid var(--liquid-glass-border-top);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.help-card h4 {
+  font-family: var(--font-aeonikpro);
+  color: var(--color-cyan);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-card p {
+  color: var(--color-moon-mist);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.win-title {
+  font-family: var(--font-aeonikpro);
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(0, 245, 160, 0.5);
+  text-align: center;
+}
+
+.win-desc {
+  font-size: 15px;
+  color: var(--color-moon-mist);
+  text-align: center;
+  margin-top: 6px;
+}
