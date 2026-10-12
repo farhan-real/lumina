@@ -39,16 +39,15 @@ window.Lumina.Raycaster = {
       const edy = Math.sin(rad);
 
       if (em.color === 'white') {
-        this.cast(em.x, em.y, edx, edy, 1, 0.25, 0.35, 1.0, 0, e, elements, sensors, hit, ref, lenOut);
-        this.cast(em.x, em.y, edx, edy, 0.2, 1, 0.45, 1.0, 0, e, elements, sensors, hit, ref, lenOut);
-        this.cast(em.x, em.y, edx, edy, 0.15, 0.6, 1, 1.0, 0, e, elements, sensors, hit, ref, lenOut);
+        this.cast(em.x, em.y, edx, edy, 1.0, 0.2, 0.25, 1.0, 0, e, elements, sensors, hit, ref, lenOut);
+        this.cast(em.x, em.y, edx, edy, 0.1, 1.0, 0.35, 1.0, 0, e, elements, sensors, hit, ref, lenOut);
+        this.cast(em.x, em.y, edx, edy, 0.1, 0.3, 1.0, 1.0, 0, e, elements, sensors, hit, ref, lenOut);
       } else {
         const rgb = window.Lumina.Constants.COLOR_MAP[em.color] || [1, 1, 1];
         this.cast(em.x, em.y, edx, edy, rgb[0], rgb[1], rgb[2], 1.0, 0, e, elements, sensors, hit, ref, lenOut);
       }
     }
 
-    // Evaluate single color or multi-color mix requirement
     for (let s = 0; s < sensors.length; s++) {
       const sens = sensors[s];
       let satisfied = true;
@@ -199,12 +198,12 @@ window.Lumina.Raycaster = {
       const dist = this.distToSegment(sens.x, sens.y, x1, y1, x2, y2);
       if (dist <= window.Lumina.Constants.SENSOR_RADIUS) {
         let beamColor = 'any';
-        if (r > 0.6 && b < 0.5 && g < 0.5) beamColor = 'red';
-        else if (g > 0.6 && r < 0.5 && b < 0.5) beamColor = 'green';
-        else if (b > 0.6 && r < 0.5 && g < 0.5) beamColor = 'blue';
-        else if (g > 0.6 && b > 0.6 && r < 0.5) beamColor = 'cyan';
+        if (r > 0.6 && b < 0.45 && g < 0.45) beamColor = 'red';
+        else if (g > 0.6 && r < 0.45 && b < 0.45) beamColor = 'green';
+        else if (b > 0.6 && r < 0.4 && g < 0.55) beamColor = 'blue';
+        else if (g > 0.6 && b > 0.6 && r < 0.4) beamColor = 'cyan';
         else if (r > 0.7 && g > 0.4 && b < 0.4) beamColor = 'amber';
-        else if (r > 0.5 && b > 0.6 && g < 0.5) beamColor = 'violet';
+        else if (r > 0.5 && b > 0.6 && g < 0.4) beamColor = 'violet';
 
         const angleStep = Math.round(Math.atan2(y2 - y1, x2 - x1) * 10);
         const hitKey = sourceId * 1000 + angleStep;
