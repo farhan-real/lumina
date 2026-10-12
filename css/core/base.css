@@ -36,7 +36,8 @@ html, body {
   flex-direction: column;
 }
 
-.view-screen.hidden {
+/* Universal Hidden Utility */
+.hidden {
   display: none !important;
 }
 

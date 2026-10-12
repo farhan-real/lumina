@@ -8,61 +8,107 @@ window.Lumina.Game = {
   currentSensors: [],
   currentInventory: [],
   isLevelCleared: false,
+  isPreviewMode: false,
 
   init() {
-    window.Lumina.Raycaster.init();
-    window.Lumina.ModalManager.init();
-    window.Lumina.Gizmo.init();
+    this.bindMenuButtons();
 
-    const canvas = document.getElementById('viewport-canvas');
-    window.Lumina.Renderer.init(canvas);
-    window.Lumina.Pointer.init(canvas.parentElement);
-    window.Lumina.HUDHeader.init();
-    window.Lumina.HUDToolbar.init();
-    window.Lumina.Editor.init();
+    // Diagnostic check for any missing modules
+    const modules = [
+      { name: 'Raycaster', obj: window.Lumina.Raycaster },
+      { name: 'ModalManager', obj: window.Lumina.ModalManager },
+      { name: 'Gizmo', obj: window.Lumina.Gizmo },
+      { name: 'Renderer', obj: window.Lumina.Renderer },
+      { name: 'Pointer', obj: window.Lumina.Pointer },
+      { name: 'HUDHeader', obj: window.Lumina.HUDHeader },
+      { name: 'HUDToolbar', obj: window.Lumina.HUDToolbar },
+      { name: 'Editor', obj: window.Lumina.Editor }
+    ];
 
-    document.getElementById('btn-menu-play').addEventListener('click', () => {
-      window.Lumina.Synth.ensureContext();
-      this.switchScreen('gameplay');
-      this.loadLevel(window.Lumina.LevelRegistry.getCurrent());
-    });
-
-    document.getElementById('btn-menu-sandbox').addEventListener('click', () => {
-      window.Lumina.Synth.ensureContext();
-      window.Lumina.LevelRegistry.isSandboxMode = true;
-      this.switchScreen('gameplay');
-      this.loadLevel(window.Lumina.LevelRegistry.getSandboxLevel());
-    });
-
-    document.getElementById('btn-menu-editor').addEventListener('click', () => {
-      window.Lumina.Synth.ensureContext();
-      this.switchScreen('editor');
-      window.Lumina.Editor.openNew();
-    });
-
-    document.getElementById('btn-menu-levels').addEventListener('click', () => {
-      window.Lumina.ModalManager.open('level-select');
-    });
-
-    document.getElementById('btn-menu-help').addEventListener('click', () => {
-      window.Lumina.ModalManager.open('help');
-    });
-
-    document.getElementById('btn-menu-clear').addEventListener('click', () => {
-      if (confirm('Reset all saved progress and lock completed levels?')) {
-        window.Lumina.LevelRegistry.clearSaveData();
-        window.Lumina.SFX.playClick();
+    modules.forEach((m) => {
+      if (!m.obj) {
+        console.warn(`Lumina module not loaded: ${m.name}. Check script tag in index.html.`);
       }
     });
 
+    // Safe guarded initialization (prevents undefined.init crashes)
+    if (window.Lumina.Raycaster?.init) window.Lumina.Raycaster.init();
+    if (window.Lumina.ModalManager?.init) window.Lumina.ModalManager.init();
+    if (window.Lumina.Gizmo?.init) window.Lumina.Gizmo.init();
+
+    const canvas = document.getElementById('viewport-canvas');
+    if (canvas && window.Lumina.Renderer?.init) {
+      window.Lumina.Renderer.init(canvas);
+    }
+    if (canvas?.parentElement && window.Lumina.Pointer?.init) {
+      window.Lumina.Pointer.init(canvas.parentElement);
+    }
+    if (window.Lumina.HUDHeader?.init) window.Lumina.HUDHeader.init();
+    if (window.Lumina.HUDToolbar?.init) window.Lumina.HUDToolbar.init();
+    if (window.Lumina.Editor?.init) window.Lumina.Editor.init();
+
+    const btnExitPreview = document.getElementById('btn-hdr-exit-preview');
+    if (btnExitPreview) {
+      btnExitPreview.onclick = () => this.exitPreviewMode();
+    }
+
     window.addEventListener('resize', () => {
-      window.Lumina.Renderer.resize();
-      if (this.currentElements.length > 0 && window.Lumina.Gizmo.activeElement) {
+      if (window.Lumina.Renderer?.resize) window.Lumina.Renderer.resize();
+      if (this.currentElements.length > 0 && window.Lumina.Gizmo?.activeElement) {
         window.Lumina.Gizmo.updatePosition(window.Lumina.Gizmo.activeElement);
       }
     });
 
     this.startLoop();
+  },
+
+  bindMenuButtons() {
+    const btnPlay = document.getElementById('btn-menu-play');
+    const btnEditor = document.getElementById('btn-menu-editor');
+    const btnLevels = document.getElementById('btn-menu-levels');
+    const btnClear = document.getElementById('btn-menu-clear');
+
+    if (btnPlay) {
+      btnPlay.onclick = () => {
+        if (window.Lumina.Synth?.ensureContext) window.Lumina.Synth.ensureContext();
+        this.switchScreen('gameplay');
+        this.loadLevel(window.Lumina.LevelRegistry.getCurrent());
+      };
+    }
+
+    if (btnEditor) {
+      btnEditor.onclick = () => {
+        if (window.Lumina.Synth?.ensureContext) window.Lumina.Synth.ensureContext();
+        this.switchScreen('editor');
+        if (window.Lumina.Editor?.openNew) window.Lumina.Editor.openNew();
+      };
+    }
+
+    if (btnLevels) {
+      btnLevels.onclick = () => {
+        if (window.Lumina.ModalManager?.open) window.Lumina.ModalManager.open('level-select');
+      };
+    }
+
+    if (btnClear) {
+      btnClear.onclick = () => {
+        if (confirm('Reset all saved progress and lock completed levels?')) {
+          if (window.Lumina.LevelRegistry?.clearSaveData) window.Lumina.LevelRegistry.clearSaveData();
+          if (window.Lumina.SFX?.playClick) window.Lumina.SFX.playClick();
+        }
+      };
+    }
+  },
+
+  exitPreviewMode() {
+    this.isPreviewMode = false;
+    const btnExit = document.getElementById('btn-hdr-exit-preview');
+    if (btnExit) btnExit.classList.add('hidden');
+    this.switchScreen('editor');
+    if (window.Lumina.Editor?.levelSnapshot) {
+      window.Lumina.Editor.loadLevelIntoEditor(window.Lumina.Editor.levelSnapshot);
+      window.Lumina.Editor.levelSnapshot = null;
+    }
   },
 
   switchScreen(screenName) {
@@ -71,9 +117,9 @@ window.Lumina.Game = {
     const play = document.getElementById('screen-gameplay');
     const editor = document.getElementById('screen-editor');
 
-    menu.classList.toggle('hidden', screenName !== 'menu');
-    play.classList.toggle('hidden', screenName !== 'gameplay');
-    editor.classList.toggle('hidden', screenName !== 'editor');
+    if (menu) menu.classList.toggle('hidden', screenName !== 'menu');
+    if (play) play.classList.toggle('hidden', screenName !== 'gameplay');
+    if (editor) editor.classList.toggle('hidden', screenName !== 'editor');
 
     if (screenName === 'editor') {
       const canvas = document.getElementById('viewport-canvas');
@@ -89,7 +135,7 @@ window.Lumina.Game = {
       }
     }
 
-    window.Lumina.Renderer.resize();
+    if (window.Lumina.Renderer?.resize) window.Lumina.Renderer.resize();
   },
 
   loadLevel(levelData) {
@@ -103,9 +149,9 @@ window.Lumina.Game = {
     this.currentSensors = JSON.parse(JSON.stringify(levelData.sensors || []));
     this.currentInventory = JSON.parse(JSON.stringify(levelData.inventory || []));
 
-    window.Lumina.HUDHeader.updateLevelInfo(levelData);
-    window.Lumina.HUDToolbar.renderInventory(this.currentInventory);
-    window.Lumina.Gizmo.hide();
+    if (window.Lumina.HUDHeader?.updateLevelInfo) window.Lumina.HUDHeader.updateLevelInfo(levelData);
+    if (window.Lumina.HUDToolbar?.renderInventory) window.Lumina.HUDToolbar.renderInventory(this.currentInventory);
+    if (window.Lumina.Gizmo?.hide) window.Lumina.Gizmo.hide();
   },
 
   resetCurrentLevel() {
@@ -128,32 +174,32 @@ window.Lumina.Game = {
     const idx = this.currentElements.indexOf(element);
     if (idx !== -1) {
       this.currentElements.splice(idx, 1);
-      const invItem = this.currentInventory.find(i => i.type === element.type);
+      const invItem = this.currentInventory.find((i) => i.type === element.type);
       if (invItem) {
         invItem.count++;
       } else {
         this.currentInventory.push({ type: element.type, count: 1 });
       }
-      window.Lumina.HUDToolbar.renderInventory(this.currentInventory);
-      window.Lumina.Gizmo.hide();
-      window.Lumina.SFX.playClick();
+      if (window.Lumina.HUDToolbar?.renderInventory) window.Lumina.HUDToolbar.renderInventory(this.currentInventory);
+      if (window.Lumina.Gizmo?.hide) window.Lumina.Gizmo.hide();
+      if (window.Lumina.SFX?.playClick) window.Lumina.SFX.playClick();
     }
   },
 
   checkSolution() {
-    if (window.Lumina.LevelRegistry.isSandboxMode) return;
-    window.Lumina.Synth.ensureContext();
-
-    const allActive = this.currentSensors.length > 0 && this.currentSensors.every(s => s.active);
+    if (window.Lumina.Synth?.ensureContext) window.Lumina.Synth.ensureContext();
+    const allActive = this.currentSensors.length > 0 && this.currentSensors.every((s) => s.active);
     if (allActive) {
       this.isLevelCleared = true;
-      window.Lumina.SFX.playVictory();
-      window.Lumina.LevelRegistry.markCompleted(window.Lumina.LevelRegistry.currentLevelIndex);
+      if (window.Lumina.SFX?.playVictory) window.Lumina.SFX.playVictory();
+      if (!this.isPreviewMode) {
+        window.Lumina.LevelRegistry.markCompleted(window.Lumina.LevelRegistry.currentLevelIndex);
+      }
       setTimeout(() => {
-        window.Lumina.ModalManager.open('victory');
+        if (window.Lumina.ModalManager?.open) window.Lumina.ModalManager.open('victory');
       }, 350);
     } else {
-      window.Lumina.SFX.playClick();
+      if (window.Lumina.SFX?.playClick) window.Lumina.SFX.playClick();
       const btn = document.getElementById('btn-run-check');
       if (btn) {
         btn.style.filter = 'brightness(0.6)';
@@ -174,21 +220,28 @@ window.Lumina.Game = {
   },
 
   update() {
-    window.Lumina.Raycaster.traceScene(
-      this.currentEmitters,
-      this.currentElements,
-      this.currentSensors
-    );
-    if (this.currentScreen === 'gameplay') {
+    if (window.Lumina.Raycaster?.traceScene) {
+      window.Lumina.Raycaster.traceScene(
+        this.currentEmitters,
+        this.currentElements,
+        this.currentSensors
+      );
+    }
+    if (this.currentScreen === 'gameplay' && window.Lumina.HUDHeader?.updateSensorStates) {
       window.Lumina.HUDHeader.updateSensorStates(this.currentSensors);
     }
   },
 
   render() {
     const r = window.Lumina.Renderer;
+    if (!r) return;
     r.clear();
-    window.Lumina.OpticsView.renderScene(r.ctx, this.currentEmitters, this.currentElements, this.currentSensors);
-    window.Lumina.BeamRenderer.render(r.ctx, window.Lumina.Raycaster.rayPool, window.Lumina.Raycaster.activeRays);
+    if (window.Lumina.SceneView?.renderScene) {
+      window.Lumina.SceneView.renderScene(r.ctx, this.currentEmitters, this.currentElements, this.currentSensors);
+    }
+    if (window.Lumina.BeamRenderer?.render && window.Lumina.Raycaster) {
+      window.Lumina.BeamRenderer.render(r.ctx, window.Lumina.Raycaster.rayPool, window.Lumina.Raycaster.activeRays);
+    }
   }
 };
 

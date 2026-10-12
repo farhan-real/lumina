@@ -7,6 +7,10 @@ window.Lumina.SceneView = {
     for (let i = 0; i < elements.length; i++) {
       this.renderElement(ctx, elements[i]);
     }
+
+    if (window.Lumina.Game.currentScreen === 'editor' && !window.Lumina.Editor.isTestMode) {
+      window.Lumina.EditorTransform.render(ctx, window.Lumina.Editor.selectedEntity);
+    }
   },
 
   renderEmitters(ctx, emitters) {
@@ -40,18 +44,16 @@ window.Lumina.SceneView = {
 
     for (let i = 0; i < sensors.length; i++) {
       const s = sensors[i];
-      const req = s.requiredColor || 'any';
-      const hasMix = s.requiredMix && s.requiredMix.length > 0;
-      const reqBeams = s.requiredBeams || (hasMix ? s.requiredMix.length : 1);
+      const hasReqs = s.requirements && s.requirements.length > 0;
+      const totalReq = hasReqs ? s.requirements.reduce((acc, r) => acc + (r.count || 1), 0) : (s.requiredBeams || 1);
       const hits = s.currentHits || 0;
-      const themeColor = colorMap[req] || '#ffffff';
       const isCharging = hits > 0 && !s.active;
 
       ctx.save();
       ctx.translate(s.x, s.y);
 
-      // 1. Tactical Outer Brackets
-      ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : themeColor);
+      // 1. Tactical Brackets
+      ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : '#38bdf8');
       ctx.lineWidth = 1.8;
       const b = 28, bl = 7;
       ctx.beginPath();
@@ -61,45 +63,46 @@ window.Lumina.SceneView = {
       ctx.moveTo(b - bl, b); ctx.lineTo(b, b); ctx.lineTo(b, b - bl);
       ctx.stroke();
 
-      // 2. Optical Well Disc
+      // 2. Optical Well
       ctx.fillStyle = s.active ? 'rgba(0, 245, 160, 0.25)' : (isCharging ? 'rgba(251, 191, 36, 0.15)' : 'rgba(0, 0, 0, 0.85)');
       ctx.beginPath();
       ctx.arc(0, 0, 22, 0, Math.PI * 2);
       ctx.fill();
 
       // 3. Spectral Wavelength Rings
-      if (hasMix && s.requiredMix.length >= 2) {
+      if (hasReqs && s.requirements.length >= 2) {
         ctx.lineWidth = 3;
-        ctx.strokeStyle = colorMap[s.requiredMix[0]] || '#ffffff';
+        ctx.strokeStyle = colorMap[s.requirements[0].color] || '#ffffff';
         ctx.beginPath(); ctx.arc(0, 0, 22, Math.PI, 0); ctx.stroke();
-        ctx.strokeStyle = colorMap[s.requiredMix[1]] || '#ffffff';
+        ctx.strokeStyle = colorMap[s.requirements[1].color] || '#ffffff';
         ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI); ctx.stroke();
       } else {
-        ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : themeColor);
+        const singleColor = hasReqs ? s.requirements[0].color : (s.requiredColor || 'any');
+        ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : (colorMap[singleColor] || '#ffffff'));
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.stroke();
       }
 
-      if (reqBeams > 1) {
-        ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : themeColor);
+      if (totalReq > 1) {
+        ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : '#38bdf8');
         ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.stroke();
       }
 
-      // 4. Central Receptor Core
-      ctx.fillStyle = s.active ? '#ffffff' : (isCharging ? '#fbbf24' : themeColor);
+      // 4. Center Core
+      ctx.fillStyle = s.active ? '#ffffff' : (isCharging ? '#fbbf24' : '#38bdf8');
       ctx.beginPath();
       ctx.arc(0, 0, s.active ? 8.5 : 5.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // 5. Spectral Badge Label
+      // 5. Badge Label
       let labelText = '';
-      if (hasMix && s.requiredMix.length > 0) {
-        labelText = 'λ ' + s.requiredMix.map(c => c.substring(0, 3).toUpperCase()).join('+');
+      if (hasReqs) {
+        labelText = 'λ ' + s.requirements.map(r => `${r.count}x${r.color.substring(0, 3).toUpperCase()}`).join('+');
       } else {
-        labelText = req === 'any' ? 'λ ANY' : `λ ${req.toUpperCase()}`;
+        labelText = s.requiredColor === 'any' ? 'λ ANY' : `λ ${(s.requiredColor || '').toUpperCase()}`;
       }
-      if (reqBeams > 1) labelText += ` [${hits}/${reqBeams}]`;
+      if (totalReq > 1) labelText += ` [${hits}/${totalReq}]`;
 
       ctx.font = 'bold 9px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
@@ -107,10 +110,10 @@ window.Lumina.SceneView = {
       const tw = ctx.measureText(labelText).width;
       ctx.fillStyle = '#020612';
       ctx.fillRect(-tw / 2 - 4, 32, tw + 8, 14);
-      ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : themeColor);
+      ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : '#38bdf8');
       ctx.lineWidth = 1;
       ctx.strokeRect(-tw / 2 - 4, 32, tw + 8, 14);
-      ctx.fillStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : themeColor);
+      ctx.fillStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : '#38bdf8');
       ctx.fillText(labelText, 0, 39);
 
       ctx.restore();
@@ -168,6 +171,14 @@ window.Lumina.SceneView = {
       ctx.beginPath();
       ctx.moveTo(-25, 25); ctx.lineTo(25, -25);
       ctx.stroke();
+    } else if (el.type === 'portal') {
+      const hl = (el.length || 70) / 2;
+      ctx.strokeStyle = '#bd00ff';
+      ctx.fillStyle = 'rgba(189, 0, 255, 0.15)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 10, hl, 0, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
     } else if (el.type === 'wall') {
       const w = el.width || 30;
       const h = el.height || 120;

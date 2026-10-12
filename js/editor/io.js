@@ -1,45 +1,83 @@
 window.Lumina = window.Lumina || {};
 
 window.Lumina.EditorIO = {
+  // Generates complete JavaScript level file content
   generateCode(levelData) {
+    const data = levelData || (window.Lumina.Editor && window.Lumina.Editor.currentLevel) || {};
+    const titleInp = document.getElementById('editor-level-name-input') || document.getElementById('prop-level-title');
+    const levelTitle = (titleInp && titleInp.value.trim()) || data.title || 'Custom Level';
+
     const cleanLevel = {
-      id: levelData.id || 101,
-      title: levelData.title || 'Custom Level',
-      desc: levelData.desc || 'Custom designed optical puzzle.',
-      width: levelData.width || 1000,
-      height: levelData.height || 700,
-      emitters: levelData.emitters || [],
-      sensors: levelData.sensors || [],
-      staticElements: levelData.staticElements || [],
-      inventory: levelData.inventory || [],
-      initialPlacements: levelData.initialPlacements || []
+      id: data.id || Date.now(),
+      title: levelTitle,
+      desc: data.desc || 'Custom designed optical puzzle.',
+      width: data.width || 1000,
+      height: data.height || 700,
+      emitters: (data.emitters || []).map((e) => ({
+        x: Math.round(e.x),
+        y: Math.round(e.y),
+        angle: e.angle || 0,
+        color: e.color || 'white'
+      })),
+      sensors: (data.sensors || []).map((s) => ({
+        id: s.id || ('s_' + Math.random().toString(36).substr(2, 5)),
+        x: Math.round(s.x),
+        y: Math.round(s.y),
+        requirements: (s.requirements && s.requirements.length > 0)
+          ? s.requirements.map((r) => ({ color: r.color, count: r.count }))
+          : [{ color: s.requiredColor || 'any', count: s.requiredBeams || 1 }],
+        requiredColor: s.requiredColor || 'any',
+        requiredBeams: s.requiredBeams || 1,
+        active: false
+      })),
+      staticElements: (data.staticElements || []).map((el) => {
+        const item = { type: el.type, x: Math.round(el.x), y: Math.round(el.y) };
+        if (el.angle !== undefined) item.angle = el.angle;
+        if (el.width !== undefined) item.width = el.width;
+        if (el.height !== undefined) item.height = el.height;
+        if (el.length !== undefined) item.length = el.length;
+        if (el.side !== undefined) item.side = el.side;
+        if (el.radius !== undefined) item.radius = el.radius;
+        if (el.linkId !== undefined) item.linkId = el.linkId;
+        return item;
+      }),
+      inventory: (data.inventory || []).map((i) => ({ type: i.type, count: i.count })),
+      initialPlacements: []
     };
-    return JSON.stringify(cleanLevel, null, 2);
+
+    const jsonStr = JSON.stringify(cleanLevel, null, 2);
+    const indented = jsonStr.split('\n').map((line, i) => (i === 0 ? line : '  ' + line)).join('\n');
+    return `window.Lumina = window.Lumina || {};\n\n(function() {\n  const level = ${indented};\n\n  window.Lumina.LevelRegistry.register(level);\n})();`;
   },
 
+  // Parses JS level files, variable assignments, or raw JSON
   parseCode(codeString) {
     try {
-      let trimmed = codeString.trim();
-      if (trimmed.startsWith('const ') || trimmed.startsWith('let ') || trimmed.startsWith('var ')) {
-        const eqIdx = trimmed.indexOf('=');
-        if (eqIdx !== -1) trimmed = trimmed.substring(eqIdx + 1).trim();
+      const str = codeString.trim();
+      const startIdx = str.indexOf('{');
+      const endIdx = str.lastIndexOf('}');
+      if (startIdx === -1 || endIdx === -1 || endIdx <= startIdx) {
+        throw new Error('Could not find level configuration object in provided text.');
       }
-      if (trimmed.endsWith(';')) trimmed = trimmed.slice(0, -1);
-
-      const parsed = JSON.parse(trimmed);
+      const jsonSnippet = str.substring(startIdx, endIdx + 1);
+      const parsed = JSON.parse(jsonSnippet);
       if (!parsed.emitters || !parsed.sensors) {
-        throw new Error('Missing emitters or sensors array.');
+        throw new Error('Code must contain emitters and sensors arrays.');
       }
       return parsed;
     } catch (err) {
-      alert('Invalid level code: ' + err.message);
+      alert('Failed to import code: ' + err.message);
       return null;
     }
   },
 
   saveToStorage(levelData) {
+    const titleInp = document.getElementById('editor-level-name-input') || document.getElementById('prop-level-title');
+    if (titleInp && titleInp.value.trim()) {
+      levelData.title = titleInp.value.trim();
+    }
     const customLevels = this.getCustomLevels();
-    const existingIdx = customLevels.findIndex(lvl => lvl.id === levelData.id);
+    const existingIdx = customLevels.findIndex((lvl) => lvl.id === levelData.id);
     if (existingIdx !== -1) {
       customLevels[existingIdx] = levelData;
     } else {
@@ -50,7 +88,7 @@ window.Lumina.EditorIO = {
 
   deleteFromStorage(levelId) {
     let customLevels = this.getCustomLevels();
-    customLevels = customLevels.filter(lvl => lvl.id !== levelId);
+    customLevels = customLevels.filter((lvl) => lvl.id !== levelId);
     localStorage.setItem('lumina_custom_levels', JSON.stringify(customLevels));
   },
 

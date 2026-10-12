@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="css/gameplay/canvas.css">
   <link rel="stylesheet" href="css/gameplay/hud.css">
   <link rel="stylesheet" href="css/editor/editor.css">
-  <link rel="stylesheet" href="css/editor/modal.css">
+  <link rel="stylesheet" href="css/editor/modal.css" onerror="this.onerror=null;this.href='css/editor/code-modal.css'">
   <link rel="stylesheet" href="css/modals/dialogs.css">
   <link rel="stylesheet" href="css/modals/level-select.css">
 </head>
@@ -22,10 +22,8 @@
         <p class="brand-desc">Guide and bend beams of light using precision mirrors, prisms, lenses, and gravity to energize every target.</p>
         <div class="menu-actions">
           <button id="btn-menu-play" class="hud-btn hud-btn-primary">Play Levels</button>
-          <button id="btn-menu-sandbox" class="hud-btn">Sandbox</button>
           <button id="btn-menu-editor" class="hud-btn">Level Editor</button>
           <button id="btn-menu-levels" class="hud-btn">Levels</button>
-          <button id="btn-menu-help" class="hud-btn">Manual</button>
           <button id="btn-menu-clear" class="hud-btn btn-danger" type="button">Clear Memory</button>
         </div>
       </div>
@@ -53,6 +51,7 @@
 
       <header id="game-header" class="game-header">
         <div class="header-left">
+          <button id="btn-hdr-exit-preview" class="hud-btn btn-danger hidden" type="button">Exit Preview</button>
           <button id="btn-hdr-menu" class="hud-btn">Menu</button>
           <div class="header-level-info"><span id="hdr-level-title" class="title">Level 1</span></div>
         </div>
@@ -82,12 +81,17 @@
       </footer>
     </main>
 
-    <!-- Level Editor Screen (Isolated) -->
+    <!-- Level Editor Screen -->
     <section id="screen-editor" class="view-screen hidden">
       <div class="editor-shell">
         <header class="editor-header">
-          <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px; align-items: center;">
             <button id="btn-editor-exit" class="hud-btn">Exit</button>
+            <div class="editor-name-bar">
+              <span class="editor-name-tag">NAME:</span>
+              <input type="text" id="editor-level-name-input" class="editor-name-input" value="Custom Level">
+            </div>
+            <button id="btn-editor-open" class="hud-btn">Load Level</button>
             <button id="btn-editor-code" class="hud-btn">Level Code</button>
             <button id="btn-editor-save" class="hud-btn">Save Level</button>
           </div>
@@ -100,17 +104,25 @@
             <button class="editor-tool-btn" data-tool="emitter">Add Emitter</button>
             <button class="editor-tool-btn" data-tool="sensor">Add Sensor</button>
             <button class="editor-tool-btn" data-tool="wall">Add Wall</button>
+            <button class="editor-tool-btn" data-tool="mirror">Add Mirror</button>
+            <button class="editor-tool-btn" data-tool="prism">Add Prism</button>
+            <button class="editor-tool-btn" data-tool="lens_convex">Add Convex Lens</button>
+            <button class="editor-tool-btn" data-tool="lens_concave">Add Concave Lens</button>
+            <button class="editor-tool-btn" data-tool="beam_splitter">Add Splitter</button>
+            <button class="editor-tool-btn" data-tool="portal">Add Portal</button>
             <button class="editor-tool-btn" data-tool="black_hole">Add Black Hole</button>
           </aside>
-          <div style="position: relative; overflow: hidden;">
-            <div id="editor-test-badge" class="test-mode-badge hidden">PREVIEW ACTIVE</div>
-          </div>
+          <div style="position: relative; overflow: hidden;"></div>
           <aside class="editor-inspector">
             <div class="inspector-section">
               <div class="inspector-title">MAP SETTINGS</div>
               <div class="prop-field"><label>Level Title</label><input type="text" id="prop-level-title" class="prop-input" style="width: 130px;" value="Custom Level"></div>
               <div class="prop-field"><label>Width (Px)</label><input type="number" id="prop-map-width" class="prop-input" value="1000" min="600" max="1800"></div>
               <div class="prop-field"><label>Height (Px)</label><input type="number" id="prop-map-height" class="prop-input" value="700" min="500" max="1400"></div>
+            </div>
+            <div class="inspector-section">
+              <div class="inspector-title">STARTING INVENTORY</div>
+              <div class="inv-config-grid" id="editor-inv-config"></div>
             </div>
             <div id="inspector-dynamic-props"></div>
           </aside>
@@ -121,7 +133,7 @@
     <div id="modal-root" class="modal-root"></div>
   </div>
 
-  <!-- Topological Script Pipeline -->
+  <!-- Topological Script Pipeline with Fallback Resolvers -->
   <script src="js/data/rules/constants.js"></script>
   <script src="js/data/rules/elements.js"></script>
   <script src="js/data/levels/level-registry.js"></script>
@@ -145,7 +157,7 @@
 
   <script src="js/systems/render/renderer.js"></script>
   <script src="js/systems/render/beams.js"></script>
-  <script src="js/systems/render/scene.js"></script>
+  <script src="js/systems/render/scene.js" onerror="this.onerror=null;this.src='js/systems/render/optics-view.js'"></script>
 
   <script src="js/ui/controls/pointer.js"></script>
   <script src="js/ui/controls/touch.js"></script>
@@ -154,8 +166,9 @@
   <script src="js/ui/modals/modal-manager.js"></script>
   <script src="js/ui/modals/dialogs.js"></script>
 
-  <script src="js/editor/io.js"></script>
-  <script src="js/editor/ui.js"></script>
+  <script src="js/editor/io.js" onerror="this.onerror=null;this.src='js/editor/editor-io.js'"></script>
+  <script src="js/editor/ui.js" onerror="this.onerror=null;this.src='js/editor/editor-ui.js'"></script>
+  <script src="js/editor/transform.js"></script>
   <script src="js/editor/editor.js"></script>
 
   <script src="js/game.js"></script>

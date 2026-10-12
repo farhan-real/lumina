@@ -13,6 +13,47 @@
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.98);
 }
 
+/* Modal Tabs Navigation */
+.code-tab-bar {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--liquid-glass-border);
+  padding: 0 20px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.code-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--color-moon-mist);
+  font-family: var(--font-aeonikpro);
+  font-size: 13px;
+  font-weight: 800;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.code-tab-btn:hover {
+  color: #ffffff;
+}
+
+.code-tab-btn.active {
+  color: var(--color-cyan);
+  border-bottom-color: var(--color-cyan);
+}
+
+.code-tab-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.code-tab-pane.hidden {
+  display: none !important;
+}
+
 .code-textarea {
   width: 100%;
   height: 280px;
@@ -37,7 +78,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 /* Custom Level Select Cards */
@@ -53,10 +94,11 @@
   background: var(--glass-3d-card-bg);
   border: 1px solid var(--glass-3d-card-border);
   border-radius: var(--radius-card);
-  padding: 10px 14px;
+  padding: 8px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 }
 
 .custom-level-item:hover {
@@ -67,4 +109,7 @@
   font-weight: 700;
   color: var(--color-ice-highlight);
   font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

@@ -9,8 +9,7 @@ window.Lumina.Raycaster = {
     for (let i = 0; i < 256; i++) {
       this.rayPool.push({
         x1: 0, y1: 0, x2: 0, y2: 0,
-        r: 1, g: 1, b: 1,
-        intensity: 1.0
+        r: 1, g: 1, b: 1, intensity: 1.0
       });
     }
   },
@@ -52,25 +51,39 @@ window.Lumina.Raycaster = {
       const sens = sensors[s];
       let satisfied = true;
 
-      if (sens.requiredMix && sens.requiredMix.length > 0) {
+      // Additive Combinations (e.g. 1x green, 2x red)
+      if (sens.requirements && sens.requirements.length > 0) {
         const rec = [...sens.receivedColors];
-        for (let m = 0; m < sens.requiredMix.length; m++) {
-          const reqColor = sens.requiredMix[m];
-          if (reqColor !== 'any') {
-            const foundIdx = rec.indexOf(reqColor);
-            if (foundIdx === -1) { satisfied = false; break; }
-            rec.splice(foundIdx, 1);
+        for (let r = 0; r < sens.requirements.length; r++) {
+          const req = sens.requirements[r];
+          const neededCount = req.count || 1;
+          let matchedCount = 0;
+
+          if (req.color === 'any') {
+            matchedCount = rec.length;
+            rec.length = Math.max(0, rec.length - neededCount);
+          } else {
+            for (let c = rec.length - 1; c >= 0; c--) {
+              if (rec[c] === req.color) {
+                rec.splice(c, 1);
+                matchedCount++;
+                if (matchedCount >= neededCount) break;
+              }
+            }
+          }
+
+          if (matchedCount < neededCount) {
+            satisfied = false;
+            break;
           }
         }
       } else {
         const req = sens.requiredColor || 'any';
-        if (req !== 'any' && !sens.receivedColors.includes(req)) {
-          satisfied = false;
-        }
+        if (req !== 'any' && !sens.receivedColors.includes(req)) satisfied = false;
+        const reqBeams = sens.requiredBeams || 1;
+        if (sens.currentHits < reqBeams) satisfied = false;
       }
 
-      const reqBeams = sens.requiredBeams || (sens.requiredMix ? sens.requiredMix.length : 1);
-      if (sens.currentHits < reqBeams) satisfied = false;
       sens.active = satisfied;
     }
   },

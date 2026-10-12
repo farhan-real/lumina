@@ -17,11 +17,12 @@ window.Lumina.ModalManager = {
     return modal;
   },
 
-  open(modalId) {
+  open(modalId, contextData) {
     const modal = this.ensure(modalId);
     if (!modal) return;
     if (window.Lumina.DialogTemplates.onOpen) {
-      window.Lumina.DialogTemplates.onOpen(modalId, modal);
+      // Forward contextData so modal templates receive their parameters
+      window.Lumina.DialogTemplates.onOpen(modalId, modal, contextData);
     }
     modal.classList.remove('hidden');
     this.activeModal = modal;

@@ -10,7 +10,15 @@ window.Lumina = window.Lumina || {};
       { x: 120, y: 420, angle: 0, color: 'cyan' }
     ],
     sensors: [
-      { id: 's_focal', x: 880, y: 350, requiredColor: 'cyan', requiredBeams: 2, active: false }
+      {
+        id: 's_focal',
+        x: 880,
+        y: 350,
+        requirements: [{ color: 'cyan', count: 2 }],
+        requiredColor: 'cyan',
+        requiredBeams: 2,
+        active: false
+      }
     ],
     staticElements: [
       { type: 'wall', x: 740, y: 190, width: 30, height: 160 },
