@@ -4,11 +4,13 @@ window.Lumina.HUDHeader = {
   titleEl: null,
   sensorContainer: null,
   coordEl: null,
+  camResetBtn: null,
 
   init() {
     this.titleEl = document.getElementById('hdr-level-title');
     this.sensorContainer = document.getElementById('sensor-indicators');
     this.coordEl = document.getElementById('pointer-coord-display');
+    this.camResetBtn = document.getElementById('btn-camera-reset');
 
     document.getElementById('btn-hdr-menu').addEventListener('click', () => {
       window.Lumina.Game.switchScreen('menu');
@@ -31,6 +33,13 @@ window.Lumina.HUDHeader = {
       audioBtn.addEventListener('click', () => {
         const isMuted = window.Lumina.Synth.toggleMute();
         audioBtn.textContent = isMuted ? 'Sound: Off' : 'Sound: On';
+      });
+    }
+
+    if (this.camResetBtn) {
+      this.camResetBtn.addEventListener('click', () => {
+        window.Lumina.Renderer.resetCamera();
+        if (window.Lumina.SFX?.playClick) window.Lumina.SFX.playClick();
       });
     }
   },
@@ -73,6 +82,13 @@ window.Lumina.HUDHeader = {
       if (this.coordEl.textContent !== text) {
         this.coordEl.textContent = text;
       }
+    }
+  },
+
+  updateCameraZoom(zoomFactor) {
+    if (this.camResetBtn) {
+      const pct = Math.round(zoomFactor * 100);
+      this.camResetBtn.textContent = `${pct}%`;
     }
   }
 };

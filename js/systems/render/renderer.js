@@ -5,6 +5,8 @@ window.Lumina.Renderer = {
   ctx: null,
   dpr: 1,
   scale: 1,
+  baseScale: 1,
+  zoom: 1.0,
   offsetX: 0,
   offsetY: 0,
   roomW: 1000,
@@ -13,24 +15,80 @@ window.Lumina.Renderer = {
   init(canvasEl) {
     this.canvas = canvasEl;
     this.ctx = canvasEl.getContext('2d', { alpha: false });
+    this.resetCamera();
     this.resize();
+  },
+
+  resetCamera() {
+    if (!this.canvas) return;
+    const parent = this.canvas.parentElement;
+    if (!parent) return;
+    const rect = parent.getBoundingClientRect();
+    const level = window.Lumina.Game?.currentLevel;
+    this.roomW = (level && level.width) || window.Lumina.Constants.ROOM_WIDTH;
+    this.roomH = (level && level.height) || window.Lumina.Constants.ROOM_HEIGHT;
+
+    this.zoom = 1.0;
+    this.baseScale = Math.min(rect.width / this.roomW, rect.height / this.roomH);
+    this.scale = this.baseScale * this.zoom;
+    this.offsetX = (rect.width - this.roomW * this.scale) / 2;
+    this.offsetY = (rect.height - this.roomH * this.scale) / 2;
+
+    if (window.Lumina.HUDHeader?.updateCameraZoom) {
+      window.Lumina.HUDHeader.updateCameraZoom(this.zoom);
+    }
   },
 
   resize() {
     if (!this.canvas) return;
-    const rect = this.canvas.parentElement.getBoundingClientRect();
+    const parent = this.canvas.parentElement;
+    if (!parent) return;
+    const rect = parent.getBoundingClientRect();
     this.dpr = Math.min(window.devicePixelRatio || 1, window.Lumina.Constants.MAX_DPR);
 
     this.canvas.width = Math.floor(rect.width * this.dpr);
     this.canvas.height = Math.floor(rect.height * this.dpr);
 
-    const level = window.Lumina.Game.currentLevel;
+    const level = window.Lumina.Game?.currentLevel;
     this.roomW = (level && level.width) || window.Lumina.Constants.ROOM_WIDTH;
     this.roomH = (level && level.height) || window.Lumina.Constants.ROOM_HEIGHT;
 
-    this.scale = Math.min(rect.width / this.roomW, rect.height / this.roomH);
-    this.offsetX = (rect.width - this.roomW * this.scale) / 2;
-    this.offsetY = (rect.height - this.roomH * this.scale) / 2;
+    const prevBase = this.baseScale || 1;
+    this.baseScale = Math.min(rect.width / this.roomW, rect.height / this.roomH);
+
+    if (this.offsetX === 0 && this.offsetY === 0) {
+      this.scale = this.baseScale * this.zoom;
+      this.offsetX = (rect.width - this.roomW * this.scale) / 2;
+      this.offsetY = (rect.height - this.roomH * this.scale) / 2;
+    } else {
+      const ratio = this.baseScale / prevBase;
+      this.scale = this.baseScale * this.zoom;
+    }
+  },
+
+  zoomAt(screenX, screenY, factor) {
+    const minZoom = 0.45;
+    const maxZoom = 3.5;
+    const nextZoom = Math.max(minZoom, Math.min(maxZoom, this.zoom * factor));
+    if (Math.abs(nextZoom - this.zoom) < 1e-4) return;
+
+    const nextScale = this.baseScale * nextZoom;
+    const worldX = (screenX - this.offsetX) / this.scale;
+    const worldY = (screenY - this.offsetY) / this.scale;
+
+    this.zoom = nextZoom;
+    this.scale = nextScale;
+    this.offsetX = screenX - worldX * nextScale;
+    this.offsetY = screenY - worldY * nextScale;
+
+    if (window.Lumina.HUDHeader?.updateCameraZoom) {
+      window.Lumina.HUDHeader.updateCameraZoom(this.zoom);
+    }
+  },
+
+  pan(dx, dy) {
+    this.offsetX += dx;
+    this.offsetY += dy;
   },
 
   screenToWorld(sx, sy) {

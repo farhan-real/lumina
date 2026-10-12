@@ -123,7 +123,7 @@ window.Lumina.Game = {
       if (window.Lumina.EditorTransform) window.Lumina.EditorTransform.target = null;
     }
 
-    if (window.Lumina.Renderer?.resize) window.Lumina.Renderer.resize();
+    if (window.Lumina.Renderer?.resetCamera) window.Lumina.Renderer.resetCamera();
   },
 
   loadLevel(levelData) {
@@ -141,6 +141,7 @@ window.Lumina.Game = {
     if (window.Lumina.EditorTransform) window.Lumina.EditorTransform.target = null;
     if (window.Lumina.HUDHeader?.updateLevelInfo) window.Lumina.HUDHeader.updateLevelInfo(levelData);
     if (window.Lumina.HUDToolbar?.renderInventory) window.Lumina.HUDToolbar.renderInventory(this.currentInventory);
+    if (window.Lumina.Renderer?.resetCamera) window.Lumina.Renderer.resetCamera();
   },
 
   resetCurrentLevel() {

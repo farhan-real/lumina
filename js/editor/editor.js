@@ -6,6 +6,9 @@ window.Lumina.Editor = {
   selectedEntity: null,
   isTestMode: false,
   levelSnapshot: null,
+  isPanning: false,
+  lastScreenX: 0,
+  lastScreenY: 0,
 
   init() {
     this.currentLevel = {
@@ -21,7 +24,7 @@ window.Lumina.Editor = {
         active: false, _isSensor: true
       }],
       staticElements: [],
-      inventory: [{ type: 'mirror', count: 3 }, { type: 'prism', count: 1 }],
+      inventory: [{ type: 'mirror', count: 3, length: 80 }, { type: 'prism', count: 1, side: 70 }],
       initialPlacements: []
     };
 
@@ -46,7 +49,7 @@ window.Lumina.Editor = {
         active: false, _isSensor: true
       }],
       staticElements: [],
-      inventory: [{ type: 'mirror', count: 3 }, { type: 'prism', count: 1 }],
+      inventory: [{ type: 'mirror', count: 3, length: 80 }, { type: 'prism', count: 1, side: 70 }],
       initialPlacements: []
     };
     this.loadLevelIntoEditor(this.currentLevel);
@@ -74,7 +77,7 @@ window.Lumina.Editor = {
     if (window.Lumina.Gizmo?.hide) window.Lumina.Gizmo.hide();
     const ui = window.Lumina.EditorUI || window.Lumina.UI;
     if (ui?.updateInspector) ui.updateInspector(null);
-    if (window.Lumina.Renderer?.resize) window.Lumina.Renderer.resize();
+    if (window.Lumina.Renderer?.resetCamera) window.Lumina.Renderer.resetCamera();
   },
 
   syncToGame() {
@@ -122,9 +125,7 @@ window.Lumina.Editor = {
 
     const btnTest = document.getElementById('btn-editor-test');
     if (btnTest) {
-      btnTest.addEventListener('click', () => {
-        this.startPreviewPlaytest();
-      });
+      btnTest.addEventListener('click', () => this.startPreviewPlaytest());
     }
 
     const btnCode = document.getElementById('btn-editor-code');
@@ -169,10 +170,36 @@ window.Lumina.Editor = {
     if (!canvas) return;
     const container = canvas.parentElement;
 
+    container.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    container.addEventListener('wheel', (e) => {
+      if (window.Lumina.Game.currentScreen !== 'editor') return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const factor = e.deltaY < 0 ? 1.12 : 0.89;
+      window.Lumina.Renderer.zoomAt(e.clientX - rect.left, e.clientY - rect.top, factor);
+    }, { passive: false });
+
+    container.addEventListener('dblclick', (e) => {
+      if (window.Lumina.Game.currentScreen !== 'editor') return;
+      const rect = canvas.getBoundingClientRect();
+      const pt = window.Lumina.Renderer.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+      if (!this.findAtPoint(pt)) {
+        window.Lumina.Renderer.resetCamera();
+      }
+    });
+
     container.addEventListener('pointerdown', (e) => {
       if (window.Lumina.Game.currentScreen !== 'editor') return;
       const rect = canvas.getBoundingClientRect();
       const pt = window.Lumina.Renderer.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+
+      if (e.button === 1 || e.button === 2 || e.spaceKey) {
+        this.isPanning = true;
+        this.lastScreenX = e.clientX;
+        this.lastScreenY = e.clientY;
+        return;
+      }
 
       if (this.activeTool === 'select') {
         const xform = window.Lumina.EditorTransform;
@@ -186,6 +213,10 @@ window.Lumina.Editor = {
         if (ui?.updateInspector) ui.updateInspector(clicked);
         if (clicked && xform?.handleDown) {
           xform.handleDown(pt, clicked);
+        } else {
+          this.isPanning = true;
+          this.lastScreenX = e.clientX;
+          this.lastScreenY = e.clientY;
         }
       } else {
         this.spawnToolEntity(this.activeTool, pt);
@@ -194,6 +225,14 @@ window.Lumina.Editor = {
 
     window.addEventListener('pointermove', (e) => {
       if (window.Lumina.Game.currentScreen !== 'editor') return;
+      if (this.isPanning) {
+        const dx = e.clientX - this.lastScreenX;
+        const dy = e.clientY - this.lastScreenY;
+        this.lastScreenX = e.clientX;
+        this.lastScreenY = e.clientY;
+        window.Lumina.Renderer.pan(dx, dy);
+        return;
+      }
       const rect = canvas.getBoundingClientRect();
       const pt = window.Lumina.Renderer.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
       if (window.Lumina.EditorTransform?.handleMove) window.Lumina.EditorTransform.handleMove(pt);
@@ -201,6 +240,7 @@ window.Lumina.Editor = {
 
     window.addEventListener('pointerup', () => {
       if (window.Lumina.Game.currentScreen !== 'editor') return;
+      this.isPanning = false;
       if (window.Lumina.EditorTransform?.handleUp) window.Lumina.EditorTransform.handleUp();
     });
   },

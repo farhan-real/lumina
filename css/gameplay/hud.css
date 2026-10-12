@@ -52,6 +52,19 @@
   user-select: none;
 }
 
+.btn-camera-reset {
+  font-family: var(--font-dotdigital);
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 58px;
+  color: var(--color-cyan);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.btn-camera-reset:hover {
+  border-color: var(--color-cyan);
+}
+
 .btn-run {
   min-height: 44px;
   padding: 10px 24px;
