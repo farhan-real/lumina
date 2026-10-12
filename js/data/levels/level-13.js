@@ -4,7 +4,7 @@ window.Lumina = window.Lumina || {};
   const level = {
     "id": 13,
     "title": "Level 13",
-    "desc": "",
+    "desc": "Custom designed optical puzzle.",
     "width": 1000,
     "height": 700,
     "emitters": [
@@ -40,6 +40,14 @@ window.Lumina = window.Lumina || {};
         "angle": 0,
         "width": 30,
         "height": 500
+      },
+      {
+        "type": "wall",
+        "x": 509,
+        "y": 514,
+        "angle": 0,
+        "width": 65,
+        "height": 30
       }
     ],
     "inventory": [
