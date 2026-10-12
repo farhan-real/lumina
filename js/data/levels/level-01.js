@@ -12,7 +12,7 @@ window.Lumina = window.Lumina || {};
       { id: 's1', x: 840, y: 160, requiredColor: 'any', active: false }
     ],
     staticElements: [
-      { type: 'blocker', x: 500, y: 410, width: 36, height: 180 }
+      { type: 'wall', x: 500, y: 410, width: 36, height: 180 }
     ],
     inventory: [
       { type: 'mirror', count: 1 }

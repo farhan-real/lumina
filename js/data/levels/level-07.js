@@ -12,8 +12,8 @@ window.Lumina = window.Lumina || {};
       { id: 's_tgt', x: 900, y: 350, requiredColor: 'any', active: false }
     ],
     staticElements: [
-      { type: 'blocker', x: 650, y: 200, width: 30, height: 230 },
-      { type: 'blocker', x: 650, y: 500, width: 30, height: 230 }
+      { type: 'wall', x: 650, y: 200, width: 30, height: 230 },
+      { type: 'wall', x: 650, y: 500, width: 30, height: 230 }
     ],
     inventory: [
       { type: 'lens_concave', count: 1 },

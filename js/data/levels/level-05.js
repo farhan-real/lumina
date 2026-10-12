@@ -13,8 +13,8 @@ window.Lumina = window.Lumina || {};
       { id: 's_focal', x: 880, y: 350, requiredColor: 'cyan', requiredBeams: 2, active: false }
     ],
     staticElements: [
-      { type: 'blocker', x: 740, y: 190, width: 30, height: 160 },
-      { type: 'blocker', x: 740, y: 510, width: 30, height: 160 }
+      { type: 'wall', x: 740, y: 190, width: 30, height: 160 },
+      { type: 'wall', x: 740, y: 510, width: 30, height: 160 }
     ],
     inventory: [
       { type: 'lens_convex', count: 1 }

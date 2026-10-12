@@ -12,7 +12,7 @@ window.Lumina = window.Lumina || {};
       { id: 's_bh', x: 880, y: 540, requiredColor: 'any', active: false }
     ],
     staticElements: [
-      { type: 'blocker', x: 500, y: 350, width: 35, height: 180 },
+      { type: 'wall', x: 500, y: 350, width: 35, height: 180 },
       { type: 'black_hole', x: 500, y: 350, radius: 24 }
     ],
     inventory: [

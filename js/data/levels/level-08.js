@@ -13,7 +13,7 @@ window.Lumina = window.Lumina || {};
       { id: 's_bot', x: 500, y: 620, requiredColor: 'green', active: false }
     ],
     staticElements: [
-      { type: 'blocker', x: 500, y: 360, width: 30, height: 60 }
+      { type: 'wall', x: 500, y: 360, width: 30, height: 60 }
     ],
     inventory: [
       { type: 'beam_splitter', count: 1 },
