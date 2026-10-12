@@ -7,34 +7,6 @@ window.Lumina.OpticsMath = {
     out.dy = dy - 2 * dot * ny;
   },
 
-  // Curved spherical mirror reflection using surface-normal curvature tilting
-  reflectCurved(el, hx, hy, dx, dy, nx, ny, out) {
-    const rad = ((el.angle || 0) * Math.PI) / 180;
-    const tx = Math.cos(rad);
-    const ty = Math.sin(rad);
-
-    let baseNx = nx;
-    let baseNy = ny;
-    if (dx * baseNx + dy * baseNy > 0) {
-      baseNx = -baseNx;
-      baseNy = -baseNy;
-    }
-
-    const h = (hx - el.x) * tx + (hy - el.y) * ty;
-    const R = el.curvature || 260;
-
-    // Concave curves inward (-h/R), convex bulges outward (+h/R)
-    const sign = el.type === 'mirror_concave' ? -1 : 1;
-    let tiltedNx = baseNx + sign * (h / R) * tx;
-    let tiltedNy = baseNy + sign * (h / R) * ty;
-
-    const len = Math.hypot(tiltedNx, tiltedNy) || 1;
-    tiltedNx /= len;
-    tiltedNy /= len;
-
-    this.reflect(dx, dy, tiltedNx, tiltedNy, out);
-  },
-
   intersectRaySegment(rx, ry, rdx, rdy, x1, y1, x2, y2, out) {
     const sx = x2 - x1;
     const sy = y2 - y1;
@@ -47,16 +19,96 @@ window.Lumina.OpticsMath = {
     const u = (qx * rdy - qy * rdx) / denom;
 
     const eps = 1e-3;
-    if (t > 0.5 && u >= -eps && u <= 1.0 + eps) {
+    if (t > 0.05 && u >= -eps && u <= 1.0 + eps) {
       out.t = t;
       out.x = rx + t * rdx;
       out.y = ry + t * rdy;
       const len = Math.hypot(sx, sy) || 1;
-      out.nx = -sy / len;
-      out.ny = sx / len;
+      let nx = -sy / len;
+      let ny = sx / len;
+      if (rdx * nx + rdy * ny > 0) {
+        nx = -nx;
+        ny = -ny;
+      }
+      out.nx = nx;
+      out.ny = ny;
       return true;
     }
     return false;
+  },
+
+  // Intersects ray against curved mirror arc ly = S * (1 - lx^2 / hl^2)
+  intersectRayParabola(ox, oy, dx, dy, cx, cy, angleDeg, hl, S, out) {
+    const rad = (angleDeg || 0) * (Math.PI / 180);
+    const cosA = Math.cos(rad);
+    const sinA = Math.sin(rad);
+
+    const relX = ox - cx;
+    const relY = oy - cy;
+    const lox = relX * cosA + relY * sinA;
+    const loy = -relX * sinA + relY * cosA;
+    const ldx = dx * cosA + dy * sinA;
+    const ldy = -dx * sinA + dy * cosA;
+
+    const hl2 = hl * hl;
+    const A = (S * ldx * ldx) / hl2;
+    const B = ldy + (2 * S * lox * ldx) / hl2;
+    const C = loy - S + (S * lox * lox) / hl2;
+
+    let bestT = Infinity;
+    let bestLx = 0;
+
+    if (Math.abs(A) < 1e-9) {
+      if (Math.abs(B) > 1e-9) {
+        const t = -C / B;
+        if (t > 0.05) {
+          const lx = lox + t * ldx;
+          if (Math.abs(lx) <= hl + 1e-3) {
+            bestT = t;
+            bestLx = lx;
+          }
+        }
+      }
+    } else {
+      const disc = B * B - 4 * A * C;
+      if (disc >= 0) {
+        const sDisc = Math.sqrt(disc);
+        const t1 = (-B - sDisc) / (2 * A);
+        const t2 = (-B + sDisc) / (2 * A);
+
+        [t1, t2].forEach((t) => {
+          if (t > 0.05 && t < bestT) {
+            const lx = lox + t * ldx;
+            if (Math.abs(lx) <= hl + 1e-3) {
+              bestT = t;
+              bestLx = lx;
+            }
+          }
+        });
+      }
+    }
+
+    if (bestT === Infinity) return false;
+
+    out.t = bestT;
+    out.x = ox + bestT * dx;
+    out.y = oy + bestT * dy;
+
+    // Normal to ly = S * (1 - lx^2 / hl^2)
+    let lnx = (2 * S * bestLx) / hl2;
+    let lny = 1;
+    const nLen = Math.hypot(lnx, lny) || 1;
+    lnx /= nLen;
+    lny /= nLen;
+
+    if (ldx * lnx + ldy * lny > 0) {
+      lnx = -lnx;
+      lny = -lny;
+    }
+
+    out.nx = lnx * cosA - lny * sinA;
+    out.ny = lnx * sinA + lny * cosA;
+    return true;
   },
 
   intersectRayBox(ox, oy, dx, dy, cx, cy, width, height, angleDeg, out) {
@@ -128,7 +180,6 @@ window.Lumina.OpticsMath = {
     out.t = t;
     out.x = ox + t * dx;
     out.y = oy + t * dy;
-
     out.nx = hitNormalLocalX * cosA - hitNormalLocalY * sinA;
     out.ny = hitNormalLocalX * sinA + hitNormalLocalY * cosA;
     return true;

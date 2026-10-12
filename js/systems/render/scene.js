@@ -127,11 +127,19 @@ window.Lumina.SceneView = {
     if (el.type === 'mirror') {
       const len = el.length || 80;
       const hl = len / 2;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
       ctx.strokeStyle = '#e0f4ff';
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(-hl, -3, len, 6);
-      ctx.fillRect(-hl, -3, len, 6);
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-hl, 0);
+      ctx.lineTo(hl, 0);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-hl, 1.5);
+      ctx.lineTo(hl, 1.5);
+      ctx.stroke();
     } else if (el.type === 'mirror_concave' || el.type === 'mirror_convex') {
       const hl = (el.length || 90) / 2;
       const sag = (el.type === 'mirror_concave' ? 1 : -1) * Math.min(24, Math.max(8, hl * 0.28));
@@ -139,14 +147,14 @@ window.Lumina.SceneView = {
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(-hl, 0);
-      ctx.quadraticCurveTo(0, sag, hl, 0);
+      ctx.quadraticCurveTo(0, 2 * sag, hl, 0);
       ctx.stroke();
 
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(-hl, sag * 0.4);
-      ctx.quadraticCurveTo(0, sag * 1.4, hl, sag * 0.4);
+      ctx.quadraticCurveTo(0, 2 * sag + (sag > 0 ? 2 : -2), hl, sag * 0.4);
       ctx.stroke();
     } else if (el.type === 'prism') {
       const side = el.side || 70;

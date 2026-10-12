@@ -128,7 +128,12 @@ window.Lumina.Raycaster = {
     if (el.type === 'wall') {
       return math.intersectRayBox(ox, oy, dx, dy, el.x, el.y, el.width || 30, el.height || 120, el.angle || 0, out);
     }
-    if (el.type === 'mirror' || el.type === 'mirror_concave' || el.type === 'mirror_convex' || el.type === 'beam_splitter' || el.type === 'portal') {
+    if (el.type === 'mirror_concave' || el.type === 'mirror_convex') {
+      const hl = (el.length || 90) / 2;
+      const sag = (el.type === 'mirror_concave' ? 1 : -1) * Math.min(24, Math.max(8, hl * 0.28));
+      return math.intersectRayParabola(ox, oy, dx, dy, el.x, el.y, el.angle || 0, hl, sag, out);
+    }
+    if (el.type === 'mirror' || el.type === 'beam_splitter' || el.type === 'portal') {
       const rad = ((el.angle || 0) * Math.PI) / 180;
       const halfL = (el.length || el.size || 80) / 2;
       const x1 = el.x - Math.cos(rad) * halfL;
@@ -163,11 +168,8 @@ window.Lumina.Raycaster = {
 
   handleHit(el, hx, hy, dx, dy, nx, ny, r, g, b, inten, depth, sourceId, elements, sensors, hitH, refH, lenOut) {
     if (el.type === 'wall') return;
-    if (el.type === 'mirror') {
+    if (el.type === 'mirror' || el.type === 'mirror_concave' || el.type === 'mirror_convex') {
       window.Lumina.OpticsMath.reflect(dx, dy, nx, ny, refH);
-      this.cast(hx, hy, refH.dx, refH.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
-    } else if (el.type === 'mirror_concave' || el.type === 'mirror_convex') {
-      window.Lumina.OpticsMath.reflectCurved(el, hx, hy, dx, dy, nx, ny, refH);
       this.cast(hx, hy, refH.dx, refH.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
     } else if (el.type === 'beam_splitter') {
       window.Lumina.OpticsMath.reflect(dx, dy, nx, ny, refH);
