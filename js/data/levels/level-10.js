@@ -4,20 +4,36 @@ window.Lumina = window.Lumina || {};
   const level = {
     id: 10,
     title: 'Level 10',
-    desc: 'Black holes curve light with intense gravity. Curve the ray around the wall.',
+    desc: 'The beam splitter divides light in two. Hit both green targets at once.',
     emitters: [
-      { x: 120, y: 180, angle: 5, color: 'white' }
+      { x: 100, y: 200, angle: 0, color: 'green' }
     ],
     sensors: [
-      { id: 's_bh', x: 880, y: 540, requiredColor: 'any', active: false }
+      {
+        id: 's_str',
+        x: 880,
+        y: 200,
+        requirements: [{ color: 'green', count: 1 }],
+        requiredColor: 'green',
+        requiredBeams: 1,
+        active: false
+      },
+      {
+        id: 's_bot',
+        x: 650,
+        y: 460,
+        requirements: [{ color: 'green', count: 1 }],
+        requiredColor: 'green',
+        requiredBeams: 1,
+        active: false
+      }
     ],
     staticElements: [
-      { type: 'wall', x: 500, y: 350, width: 35, height: 180 },
-      { type: 'black_hole', x: 500, y: 350, radius: 24 }
+      { type: 'wall', x: 480, y: 340, width: 24, height: 100 }
     ],
     inventory: [
-      { type: 'mirror', count: 2 },
-      { type: 'prism', count: 1 }
+      { type: 'beam_splitter', count: 1 },
+      { type: 'mirror', count: 1 }
     ],
     initialPlacements: []
   };

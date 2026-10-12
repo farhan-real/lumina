@@ -7,6 +7,34 @@ window.Lumina.OpticsMath = {
     out.dy = dy - 2 * dot * ny;
   },
 
+  // Curved spherical mirror reflection using surface-normal curvature tilting
+  reflectCurved(el, hx, hy, dx, dy, nx, ny, out) {
+    const rad = ((el.angle || 0) * Math.PI) / 180;
+    const tx = Math.cos(rad);
+    const ty = Math.sin(rad);
+
+    let baseNx = nx;
+    let baseNy = ny;
+    if (dx * baseNx + dy * baseNy > 0) {
+      baseNx = -baseNx;
+      baseNy = -baseNy;
+    }
+
+    const h = (hx - el.x) * tx + (hy - el.y) * ty;
+    const R = el.curvature || 260;
+
+    // Concave curves inward (-h/R), convex bulges outward (+h/R)
+    const sign = el.type === 'mirror_concave' ? -1 : 1;
+    let tiltedNx = baseNx + sign * (h / R) * tx;
+    let tiltedNy = baseNy + sign * (h / R) * ty;
+
+    const len = Math.hypot(tiltedNx, tiltedNy) || 1;
+    tiltedNx /= len;
+    tiltedNy /= len;
+
+    this.reflect(dx, dy, tiltedNx, tiltedNy, out);
+  },
+
   intersectRaySegment(rx, ry, rdx, rdy, x1, y1, x2, y2, out) {
     const sx = x2 - x1;
     const sy = y2 - y1;
@@ -31,7 +59,6 @@ window.Lumina.OpticsMath = {
     return false;
   },
 
-  // Solid Oriented Bounding Box (OBB) Slab Test for Walls
   intersectRayBox(ox, oy, dx, dy, cx, cy, width, height, angleDeg, out) {
     const rad = (angleDeg || 0) * (Math.PI / 180);
     const cosA = Math.cos(rad);
@@ -39,7 +66,6 @@ window.Lumina.OpticsMath = {
     const hw = (width || 30) / 2;
     const hh = (height || 120) / 2;
 
-    // Transform ray into local box coordinates
     const relX = ox - cx;
     const relY = oy - cy;
     const lox = relX * cosA + relY * sinA;
@@ -47,7 +73,6 @@ window.Lumina.OpticsMath = {
     const ldx = dx * cosA + dy * sinA;
     const ldy = -dx * sinA + dy * cosA;
 
-    // Inside-box check: terminate immediately if ray originates inside
     if (Math.abs(lox) <= hw && Math.abs(loy) <= hh) {
       out.t = 0.001;
       out.x = ox;
@@ -62,7 +87,6 @@ window.Lumina.OpticsMath = {
     let hitNormalLocalX = 0;
     let hitNormalLocalY = 0;
 
-    // X-Axis Slab
     if (Math.abs(ldx) > 1e-9) {
       let t1 = (-hw - lox) / ldx;
       let t2 = (hw - lox) / ldx;
@@ -78,11 +102,8 @@ window.Lumina.OpticsMath = {
       }
       tmax = Math.min(tmax, t2);
       if (tmin > tmax) return false;
-    } else {
-      if (Math.abs(lox) > hw) return false;
-    }
+    } else if (Math.abs(lox) > hw) return false;
 
-    // Y-Axis Slab
     if (Math.abs(ldy) > 1e-9) {
       let t1 = (-hh - loy) / ldy;
       let t2 = (hh - loy) / ldy;
@@ -98,9 +119,7 @@ window.Lumina.OpticsMath = {
       }
       tmax = Math.min(tmax, t2);
       if (tmin > tmax) return false;
-    } else {
-      if (Math.abs(loy) > hh) return false;
-    }
+    } else if (Math.abs(loy) > hh) return false;
 
     if (tmax < 0.05) return false;
     const t = tmin > 0.05 ? tmin : tmax;
@@ -110,7 +129,6 @@ window.Lumina.OpticsMath = {
     out.x = ox + t * dx;
     out.y = oy + t * dy;
 
-    // Transform normal back to world coordinates
     out.nx = hitNormalLocalX * cosA - hitNormalLocalY * sinA;
     out.ny = hitNormalLocalX * sinA + hitNormalLocalY * cosA;
     return true;

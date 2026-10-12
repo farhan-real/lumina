@@ -4,20 +4,20 @@ window.Lumina = window.Lumina || {};
   const level = {
     id: 8,
     title: 'Level 8',
-    desc: 'The beam splitter divides light in two. Hit both green targets at once.',
+    desc: 'Use a concave lens to diverge light outward to reach distant sensors.',
     emitters: [
-      { x: 100, y: 200, angle: 0, color: 'green' }
+      { x: 100, y: 350, angle: 0, color: 'amber' }
     ],
     sensors: [
-      { id: 's_str', x: 900, y: 200, requiredColor: 'green', active: false },
-      { id: 's_bot', x: 500, y: 620, requiredColor: 'green', active: false }
+      { id: 's_up', x: 880, y: 160, requiredColor: 'any', active: false },
+      { id: 's_dn', x: 880, y: 540, requiredColor: 'any', active: false }
     ],
     staticElements: [
-      { type: 'wall', x: 500, y: 360, width: 30, height: 60 }
+      { type: 'wall', x: 880, y: 350, width: 40, height: 180 }
     ],
     inventory: [
-      { type: 'beam_splitter', count: 1 },
-      { type: 'mirror', count: 1 }
+      { type: 'lens_concave', count: 1 },
+      { type: 'mirror', count: 2 }
     ],
     initialPlacements: []
   };

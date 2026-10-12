@@ -52,7 +52,6 @@ window.Lumina.SceneView = {
       ctx.save();
       ctx.translate(s.x, s.y);
 
-      // 1. Tactical Brackets
       ctx.strokeStyle = s.active ? '#00f5a0' : (isCharging ? '#fbbf24' : '#38bdf8');
       ctx.lineWidth = 1.8;
       const b = 28, bl = 7;
@@ -63,13 +62,11 @@ window.Lumina.SceneView = {
       ctx.moveTo(b - bl, b); ctx.lineTo(b, b); ctx.lineTo(b, b - bl);
       ctx.stroke();
 
-      // 2. Optical Well
       ctx.fillStyle = s.active ? 'rgba(0, 245, 160, 0.25)' : (isCharging ? 'rgba(251, 191, 36, 0.15)' : 'rgba(0, 0, 0, 0.85)');
       ctx.beginPath();
       ctx.arc(0, 0, 22, 0, Math.PI * 2);
       ctx.fill();
 
-      // 3. Spectral Wavelength Rings
       if (hasReqs && s.requirements.length >= 2) {
         ctx.lineWidth = 3;
         ctx.strokeStyle = colorMap[s.requirements[0].color] || '#ffffff';
@@ -89,16 +86,14 @@ window.Lumina.SceneView = {
         ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.stroke();
       }
 
-      // 4. Center Core
       ctx.fillStyle = s.active ? '#ffffff' : (isCharging ? '#fbbf24' : '#38bdf8');
       ctx.beginPath();
       ctx.arc(0, 0, s.active ? 8.5 : 5.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // 5. Badge Label
       let labelText = '';
       if (hasReqs) {
-        labelText = 'λ ' + s.requirements.map(r => `${r.count}x${r.color.substring(0, 3).toUpperCase()}`).join('+');
+        labelText = 'λ ' + s.requirements.map((r) => `${r.count}x${r.color.substring(0, 3).toUpperCase()}`).join('+');
       } else {
         labelText = s.requiredColor === 'any' ? 'λ ANY' : `λ ${(s.requiredColor || '').toUpperCase()}`;
       }
@@ -132,6 +127,22 @@ window.Lumina.SceneView = {
       ctx.lineWidth = 2.5;
       ctx.strokeRect(-hl, -3, el.length || 80, 6);
       ctx.fillRect(-hl, -3, el.length || 80, 6);
+    } else if (el.type === 'mirror_concave' || el.type === 'mirror_convex') {
+      const hl = (el.length || 90) / 2;
+      const sag = el.type === 'mirror_concave' ? 14 : -14;
+      ctx.strokeStyle = '#e0f4ff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-hl, 0);
+      ctx.quadraticCurveTo(0, sag, hl, 0);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-hl, sag * 0.4);
+      ctx.quadraticCurveTo(0, sag * 1.4, hl, sag * 0.4);
+      ctx.stroke();
     } else if (el.type === 'prism') {
       ctx.fillStyle = 'rgba(56, 189, 248, 0.18)';
       ctx.strokeStyle = 'rgba(125, 211, 252, 0.85)';

@@ -51,7 +51,6 @@ window.Lumina.Raycaster = {
       const sens = sensors[s];
       let satisfied = true;
 
-      // Additive Combinations (e.g. 1x green, 2x red)
       if (sens.requirements && sens.requirements.length > 0) {
         const rec = [...sens.receivedColors];
         for (let r = 0; r < sens.requirements.length; r++) {
@@ -129,8 +128,8 @@ window.Lumina.Raycaster = {
     if (el.type === 'wall') {
       return math.intersectRayBox(ox, oy, dx, dy, el.x, el.y, el.width || 30, el.height || 120, el.angle || 0, out);
     }
-    if (el.type === 'mirror' || el.type === 'beam_splitter' || el.type === 'portal') {
-      const rad = (el.angle || 0) * (Math.PI / 180);
+    if (el.type === 'mirror' || el.type === 'mirror_concave' || el.type === 'mirror_convex' || el.type === 'beam_splitter' || el.type === 'portal') {
+      const rad = ((el.angle || 0) * Math.PI) / 180;
       const halfL = (el.length || el.size || 80) / 2;
       const x1 = el.x - Math.cos(rad) * halfL;
       const y1 = el.y - Math.sin(rad) * halfL;
@@ -167,6 +166,9 @@ window.Lumina.Raycaster = {
     if (el.type === 'mirror') {
       window.Lumina.OpticsMath.reflect(dx, dy, nx, ny, refH);
       this.cast(hx, hy, refH.dx, refH.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
+    } else if (el.type === 'mirror_concave' || el.type === 'mirror_convex') {
+      window.Lumina.OpticsMath.reflectCurved(el, hx, hy, dx, dy, nx, ny, refH);
+      this.cast(hx, hy, refH.dx, refH.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
     } else if (el.type === 'beam_splitter') {
       window.Lumina.OpticsMath.reflect(dx, dy, nx, ny, refH);
       this.cast(hx, hy, refH.dx, refH.dy, r, g, b, inten * 0.5, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
@@ -189,8 +191,8 @@ window.Lumina.Raycaster = {
       const outDy = Math.sin(outAngle);
       this.cast(hx + outDx * 3, hy + outDy * 3, outDx, outDy, r, g, b, inten, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
     } else if (el.type === 'portal') {
-      const allPortals = elements.filter(item => item.type === 'portal');
-      const partner = allPortals.find(item => (item.linkId && item.linkId === el.id) || (el.linkId && item.id === el.linkId) || (item !== el));
+      const allPortals = elements.filter((item) => item.type === 'portal');
+      const partner = allPortals.find((item) => (item.linkId && item.linkId === el.id) || (el.linkId && item.id === el.linkId) || (item !== el));
       if (partner) {
         window.Lumina.Geodesic.mapPortal(hx, hy, dx, dy, el, partner, lenOut);
         this.cast(lenOut.x, lenOut.y, lenOut.dx, lenOut.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);

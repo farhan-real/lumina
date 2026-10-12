@@ -4,22 +4,19 @@ window.Lumina = window.Lumina || {};
   const level = {
     id: 4,
     title: 'Level 4',
-    desc: 'Separate the beam into Red, Green, and Blue rays to hit all 3 targets.',
+    desc: 'Use the convex mirror to diverge a single beam into both separated sensors.',
     emitters: [
-      { x: 100, y: 350, angle: 0, color: 'white' }
+      { x: 120, y: 350, angle: 0, color: 'amber' }
     ],
     sensors: [
-      { id: 's_r', x: 750, y: 200, requiredColor: 'red', active: false },
-      { id: 's_g', x: 750, y: 350, requiredColor: 'green', active: false },
-      { id: 's_b', x: 750, y: 500, requiredColor: 'blue', active: false }
+      { id: 's_cv_top', x: 260, y: 190, requiredColor: 'amber', active: false },
+      { id: 's_cv_bot', x: 260, y: 510, requiredColor: 'amber', active: false }
     ],
     staticElements: [
-      { type: 'wall', x: 660, y: 260, width: 24, height: 50 },
-      { type: 'wall', x: 660, y: 440, width: 24, height: 50 }
+      { type: 'wall', x: 260, y: 350, width: 24, height: 160 }
     ],
     inventory: [
-      { type: 'prism', count: 1 },
-      { type: 'mirror', count: 2 }
+      { type: 'mirror_convex', count: 1 }
     ],
     initialPlacements: []
   };

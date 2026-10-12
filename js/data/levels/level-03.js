@@ -4,20 +4,20 @@ window.Lumina = window.Lumina || {};
   const level = {
     id: 3,
     title: 'Level 3',
-    desc: 'Prisms split white light into colors. Direct Red and Blue to their targets.',
+    desc: 'Use the concave mirror to converge dual parallel beams onto the receptor.',
     emitters: [
-      { x: 120, y: 350, angle: 0, color: 'white' }
+      { x: 120, y: 280, angle: 0, color: 'green' },
+      { x: 120, y: 420, angle: 0, color: 'green' }
     ],
     sensors: [
-      { id: 's_red', x: 860, y: 240, requiredColor: 'red', active: false },
-      { id: 's_blue', x: 860, y: 460, requiredColor: 'blue', active: false }
+      { id: 's_concave', x: 420, y: 350, requirements: [{ color: 'green', count: 2 }], requiredColor: 'green', requiredBeams: 2, active: false }
     ],
     staticElements: [
-      { type: 'wall', x: 640, y: 350, width: 30, height: 80 }
+      { type: 'wall', x: 420, y: 230, width: 24, height: 80 },
+      { type: 'wall', x: 420, y: 470, width: 24, height: 80 }
     ],
     inventory: [
-      { type: 'prism', count: 1 },
-      { type: 'mirror', count: 1 }
+      { type: 'mirror_concave', count: 1 }
     ],
     initialPlacements: []
   };

@@ -4,19 +4,21 @@ window.Lumina = window.Lumina || {};
   const level = {
     id: 6,
     title: 'Level 6',
-    desc: 'Use a concave lens to diverge light outward to reach distant sensors.',
+    desc: 'Separate the beam into Red, Green, and Blue rays to hit all 3 targets.',
     emitters: [
-      { x: 100, y: 350, angle: 0, color: 'amber' }
+      { x: 100, y: 350, angle: 0, color: 'white' }
     ],
     sensors: [
-      { id: 's_up', x: 880, y: 160, requiredColor: 'any', active: false },
-      { id: 's_dn', x: 880, y: 540, requiredColor: 'any', active: false }
+      { id: 's_r', x: 750, y: 200, requiredColor: 'red', active: false },
+      { id: 's_g', x: 750, y: 350, requiredColor: 'green', active: false },
+      { id: 's_b', x: 750, y: 500, requiredColor: 'blue', active: false }
     ],
     staticElements: [
-      { type: 'wall', x: 880, y: 350, width: 40, height: 180 }
+      { type: 'wall', x: 540, y: 260, width: 24, height: 50 },
+      { type: 'wall', x: 540, y: 440, width: 24, height: 50 }
     ],
     inventory: [
-      { type: 'lens_concave', count: 1 },
+      { type: 'prism', count: 1 },
       { type: 'mirror', count: 2 }
     ],
     initialPlacements: []

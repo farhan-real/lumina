@@ -4,28 +4,20 @@ window.Lumina = window.Lumina || {};
   const level = {
     id: 5,
     title: 'Level 5',
-    desc: 'Use a convex lens to focus both beams into the middle target opening.',
+    desc: 'Prisms split white light into colors. Direct Red and Blue to their targets.',
     emitters: [
-      { x: 120, y: 280, angle: 0, color: 'cyan' },
-      { x: 120, y: 420, angle: 0, color: 'cyan' }
+      { x: 120, y: 350, angle: 0, color: 'white' }
     ],
     sensors: [
-      {
-        id: 's_focal',
-        x: 880,
-        y: 350,
-        requirements: [{ color: 'cyan', count: 2 }],
-        requiredColor: 'cyan',
-        requiredBeams: 2,
-        active: false
-      }
+      { id: 's_red', x: 860, y: 240, requiredColor: 'red', active: false },
+      { id: 's_blue', x: 860, y: 460, requiredColor: 'blue', active: false }
     ],
     staticElements: [
-      { type: 'wall', x: 740, y: 190, width: 30, height: 160 },
-      { type: 'wall', x: 740, y: 510, width: 30, height: 160 }
+      { type: 'wall', x: 640, y: 350, width: 30, height: 80 }
     ],
     inventory: [
-      { type: 'lens_convex', count: 1 }
+      { type: 'prism', count: 1 },
+      { type: 'mirror', count: 1 }
     ],
     initialPlacements: []
   };

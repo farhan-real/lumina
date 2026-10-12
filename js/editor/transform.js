@@ -62,7 +62,6 @@ window.Lumina.EditorTransform = {
       ent.length = Math.max(24, Math.min(400, Math.round(dist * 2)));
     }
 
-    // Live update inspector fields without rebuilding the DOM
     window.Lumina.EditorUI.syncValues(ent);
     return true;
   },
@@ -110,7 +109,7 @@ window.Lumina.EditorTransform = {
       const r = ent.radius || 24;
       const rh = { x: ent.x + r, y: ent.y };
       if (Math.hypot(pt.x - rh.x, pt.y - rh.y) <= tol) return { mode: 'resize-radius' };
-    } else if (ent.type === 'mirror' || ent.type === 'portal') {
+    } else if (ent.type === 'mirror' || ent.type === 'mirror_concave' || ent.type === 'mirror_convex' || ent.type === 'portal') {
       const hl = (ent.length || 80) / 2;
       const rot = this.toWorld(ent.x, ent.y, 0, -hl - 20, rad);
       if (Math.hypot(pt.x - rot.x, pt.y - rot.y) <= tol) return { mode: 'rotate' };
@@ -163,6 +162,7 @@ window.Lumina.EditorTransform = {
       ctx.arc(0, -hh - 24, 5, 0, Math.PI * 2);
       ctx.fillStyle = '#00f0ff';
       ctx.fill();
+      ctx.stroke();
 
       this.drawSquareHandle(ctx, 0, -hh);
       this.drawSquareHandle(ctx, 0, hh);
@@ -194,11 +194,13 @@ window.Lumina.EditorTransform = {
       this.drawSquareHandle(ctx, r, 0);
       this.drawBadge(ctx, 0, r + 18, `R: ${r}px`);
     } else {
+      const hl = (ent.length || 80) / 2;
       ctx.strokeStyle = '#00f0ff';
       ctx.setLineDash([4, 3]);
-      ctx.strokeRect(-28, -28, 56, 56);
+      ctx.strokeRect(-hl - 4, -14, (hl + 4) * 2, 28);
       ctx.setLineDash([]);
-      this.drawBadge(ctx, 0, 38, `X:${Math.round(ent.x)} Y:${Math.round(ent.y)}`);
+      this.drawSquareHandle(ctx, hl, 0);
+      this.drawBadge(ctx, 0, 26, `X:${Math.round(ent.x)} Y:${Math.round(ent.y)} | ${ent.angle || 0}°`);
     }
 
     ctx.restore();

@@ -3,9 +3,8 @@ window.Lumina = window.Lumina || {};
 window.Lumina.Lenses = {
   // Returns the physical aperture segment perpendicular to the lens optical axis
   getApertureSegment(lens) {
-    const rad = (lens.angle || 0) * (Math.PI / 180);
+    const rad = ((lens.angle || 0) * Math.PI) / 180;
     const halfH = (lens.height || 160) / 2;
-    // At angle 0, the optical axis is horizontal (X), so the aperture stands vertically (Y)
     const sinA = Math.sin(rad);
     const cosA = Math.cos(rad);
     return {
@@ -16,28 +15,29 @@ window.Lumina.Lenses = {
     };
   },
 
-  // Calculates thin-lens deflection using optical transfer mechanics
+  // Calculates thin-lens deflection using forward-transmitting optical mechanics
   calculateDeflection(lens, hitX, hitY, dx, dy, out) {
-    const rad = (lens.angle || 0) * (Math.PI / 180);
-    const sinA = Math.sin(rad);
+    const rad = ((lens.angle || 0) * Math.PI) / 180;
     const cosA = Math.cos(rad);
+    const sinA = Math.sin(rad);
 
-    // Optical aperture transverse coordinate (-sinA, cosA)
+    // Transverse displacement along the lens aperture (-sinA, cosA)
     const h = (hitX - lens.x) * (-sinA) + (hitY - lens.y) * cosA;
 
     const isConvex = lens.type === 'lens_convex';
     const focalLength = isConvex ? 250 : -180;
 
-    // Incoming angle relative to lens optical axis
+    // Check whether ray propagates through the lens in the forward or reverse direction
+    const forwardProj = dx * cosA + dy * sinA;
+    const forwardSign = forwardProj >= 0 ? 1 : -1;
+
+    // Single-argument atan prevents negative focal lengths from flipping the ray 180 degrees
+    const deflection = -forwardSign * Math.atan(h / focalLength);
+
     const rayAngle = Math.atan2(dy, dx);
-    const relIncidence = rayAngle - rad;
+    const finalAngle = rayAngle + deflection;
 
-    // Thin-lens deflection formula
-    const deflection = -Math.atan2(h, focalLength);
-    const finalRelAngle = relIncidence + deflection;
-    const finalWorldAngle = rad + finalRelAngle;
-
-    out.dx = Math.cos(finalWorldAngle);
-    out.dy = Math.sin(finalWorldAngle);
+    out.dx = Math.cos(finalAngle);
+    out.dy = Math.sin(finalAngle);
   }
 };

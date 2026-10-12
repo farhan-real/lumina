@@ -238,6 +238,12 @@ window.Lumina.Editor = {
     } else if (tool === 'mirror') {
       spawned = { type: 'mirror', x, y, length: 80, angle: 0, movable: true, rotatable: true };
       this.currentLevel.staticElements.push(spawned);
+    } else if (tool === 'mirror_concave') {
+      spawned = { type: 'mirror_concave', x, y, length: 90, curvature: 260, angle: 0, movable: true, rotatable: true };
+      this.currentLevel.staticElements.push(spawned);
+    } else if (tool === 'mirror_convex') {
+      spawned = { type: 'mirror_convex', x, y, length: 90, curvature: 260, angle: 0, movable: true, rotatable: true };
+      this.currentLevel.staticElements.push(spawned);
     } else if (tool === 'prism') {
       spawned = { type: 'prism', x, y, side: 70, angle: 0, movable: true, rotatable: true };
       this.currentLevel.staticElements.push(spawned);

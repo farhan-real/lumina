@@ -13,7 +13,6 @@ window.Lumina.EditorUI = {
     const lvlTitle = document.getElementById('prop-level-title');
     const headerTitle = document.getElementById('editor-level-name-input');
 
-    // Preserve whitespace during typing; sync without overwriting the active input
     const syncName = (sourceInput, targetInput) => {
       const rawVal = sourceInput.value;
       if (window.Lumina.Editor.currentLevel) {
@@ -65,9 +64,11 @@ window.Lumina.EditorUI = {
 
     const invTypes = [
       { key: 'mirror', label: 'Mirrors' },
+      { key: 'mirror_concave', label: 'Concave Mir' },
+      { key: 'mirror_convex', label: 'Convex Mir' },
       { key: 'prism', label: 'Prisms' },
-      { key: 'lens_convex', label: 'Convex Lenses' },
-      { key: 'lens_concave', label: 'Concave Lenses' },
+      { key: 'lens_convex', label: 'Convex Lens' },
+      { key: 'lens_concave', label: 'Concave Lens' },
       { key: 'beam_splitter', label: 'Splitters' },
       { key: 'portal', label: 'Portals' },
       { key: 'wall', label: 'Walls' }

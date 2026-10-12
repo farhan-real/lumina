@@ -9,6 +9,24 @@ window.Lumina.Elements = {
     rotatable: true,
     icon: '<svg width="24" height="24" viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="4" stroke="currentColor" stroke-width="2.5"/></svg>'
   },
+  MIRROR_CONCAVE: {
+    type: 'mirror_concave',
+    name: 'Concave Mirror',
+    length: 90,
+    curvature: 260,
+    movable: true,
+    rotatable: true,
+    icon: '<svg width="24" height="24" viewBox="0 0 24 24"><path d="M6 3 Q16 12 6 21" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>'
+  },
+  MIRROR_CONVEX: {
+    type: 'mirror_convex',
+    name: 'Convex Mirror',
+    length: 90,
+    curvature: 260,
+    movable: true,
+    rotatable: true,
+    icon: '<svg width="24" height="24" viewBox="0 0 24 24"><path d="M18 3 Q8 12 18 21" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>'
+  },
   PRISM: {
     type: 'prism',
     name: 'Prism',

@@ -4,20 +4,20 @@ window.Lumina = window.Lumina || {};
   const level = {
     id: 9,
     title: 'Level 9',
-    desc: 'Light entering Portal A emerges from Portal B. Cross the sealed wall.',
+    desc: 'Combine concave and convex lenses to guide the beam through the narrow slit.',
     emitters: [
-      { x: 120, y: 180, angle: 0, color: 'blue' }
+      { x: 100, y: 350, angle: 0, color: 'violet' }
     ],
     sensors: [
-      { id: 's_v', x: 880, y: 550, requiredColor: 'blue', active: false }
+      { id: 's_tgt', x: 900, y: 350, requiredColor: 'any', active: false }
     ],
     staticElements: [
-      { type: 'wall', x: 500, y: 350, width: 40, height: 700 },
-      { type: 'portal', x: 380, y: 180, angle: 90, linkId: 'p2' },
-      { type: 'portal', x: 620, y: 550, angle: 90, linkId: 'p1' }
+      { type: 'wall', x: 650, y: 200, width: 30, height: 230 },
+      { type: 'wall', x: 650, y: 500, width: 30, height: 230 }
     ],
     inventory: [
-      { type: 'mirror', count: 2 }
+      { type: 'lens_concave', count: 1 },
+      { type: 'lens_convex', count: 1 }
     ],
     initialPlacements: []
   };

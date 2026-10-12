@@ -4,19 +4,27 @@ window.Lumina = window.Lumina || {};
   const level = {
     id: 7,
     title: 'Level 7',
-    desc: 'Combine concave and convex lenses to guide the beam through the narrow slit.',
+    desc: 'Use a convex lens to focus both beams into the middle target opening.',
     emitters: [
-      { x: 100, y: 350, angle: 0, color: 'violet' }
+      { x: 120, y: 280, angle: 0, color: 'cyan' },
+      { x: 120, y: 420, angle: 0, color: 'cyan' }
     ],
     sensors: [
-      { id: 's_tgt', x: 900, y: 350, requiredColor: 'any', active: false }
+      {
+        id: 's_focal',
+        x: 880,
+        y: 350,
+        requirements: [{ color: 'cyan', count: 2 }],
+        requiredColor: 'cyan',
+        requiredBeams: 2,
+        active: false
+      }
     ],
     staticElements: [
-      { type: 'wall', x: 650, y: 200, width: 30, height: 230 },
-      { type: 'wall', x: 650, y: 500, width: 30, height: 230 }
+      { type: 'wall', x: 740, y: 190, width: 30, height: 160 },
+      { type: 'wall', x: 740, y: 510, width: 30, height: 160 }
     ],
     inventory: [
-      { type: 'lens_concave', count: 1 },
       { type: 'lens_convex', count: 1 }
     ],
     initialPlacements: []
