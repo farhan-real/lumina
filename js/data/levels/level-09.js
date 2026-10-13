@@ -9,11 +9,11 @@ window.Lumina = window.Lumina || {};
       { x: 100, y: 350, angle: 0, color: 'violet' }
     ],
     sensors: [
-      { id: 's_tgt', x: 900, y: 350, requiredColor: 'any', active: false }
+      { id: 's_tgt', x: 900, y: 300, requiredColor: 'any', active: false }
     ],
     staticElements: [
-      { type: 'wall', x: 650, y: 200, width: 30, height: 230 },
-      { type: 'wall', x: 650, y: 500, width: 30, height: 230 }
+      { type: 'wall', x: 650, y: 180, width: 30, height: 200 },
+      { type: 'wall', x: 650, y: 420, width: 30, height: 200 }
     ],
     inventory: [
       { type: 'lens_concave', count: 1 },

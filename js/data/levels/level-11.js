@@ -21,7 +21,7 @@ window.Lumina = window.Lumina || {};
     ],
     staticElements: [
       { type: 'wall', x: 500, y: 350, width: 40, height: 700 },
-      { type: 'portal', x: 380, y: 180, angle: 90, linkId: 'p2' },
+      { type: 'portal', x: 380, y: 280, angle: 90, linkId: 'p2' },
       { type: 'portal', x: 620, y: 550, angle: 90, linkId: 'p1' }
     ],
     inventory: [

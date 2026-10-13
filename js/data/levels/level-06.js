@@ -14,8 +14,8 @@ window.Lumina = window.Lumina || {};
       { id: 's_b', x: 750, y: 500, requiredColor: 'blue', active: false }
     ],
     staticElements: [
-      { type: 'wall', x: 540, y: 260, width: 24, height: 50 },
-      { type: 'wall', x: 540, y: 440, width: 24, height: 50 }
+      { type: 'wall', x: 650, y: 265, width: 24, height: 50 },
+      { type: 'wall', x: 650, y: 430, width: 24, height: 50 }
     ],
     inventory: [
       { type: 'prism', count: 1 },
