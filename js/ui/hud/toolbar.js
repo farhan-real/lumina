@@ -138,10 +138,13 @@ window.Lumina.HUDToolbar = {
     const game = window.Lumina.Game;
     const elemDef = window.Lumina.Elements[item.type.toUpperCase()] || {};
     const isWall = item.type === 'wall';
+    const roomW = (game.currentLevel?.width) || window.Lumina.Constants.ROOM_WIDTH;
+    const roomH = (game.currentLevel?.height) || window.Lumina.Constants.ROOM_HEIGHT;
+
     const newEl = {
       type: item.type,
-      x: 500,
-      y: 350,
+      x: Math.round(roomW / 2),
+      y: Math.round(roomH / 2),
       angle: 0,
       movable: true,
       rotatable: true
@@ -159,6 +162,12 @@ window.Lumina.HUDToolbar = {
     if (isWall) {
       newEl.width = newEl.width || 30;
       newEl.height = newEl.height || 120;
+    }
+
+    if (window.Lumina.Collider?.findSafeSpawn) {
+      const safe = window.Lumina.Collider.findSafeSpawn(newEl, game.currentElements, roomW, roomH);
+      newEl.x = safe.x;
+      newEl.y = safe.y;
     }
 
     game.currentElements.push(newEl);

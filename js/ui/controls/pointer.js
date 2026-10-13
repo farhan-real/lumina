@@ -63,7 +63,6 @@ window.Lumina.Pointer = {
 
     this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-    // Multi-touch pinch zoom initiation
     if (this.touches.size === 2) {
       this.isPanning = false;
       const pts = Array.from(this.touches.values());
@@ -75,7 +74,6 @@ window.Lumina.Pointer = {
     const worldPt = window.Lumina.Renderer.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
     const xform = window.Lumina.EditorTransform;
 
-    // Middle click, right click, or spacebar initiates camera panning
     if (e.button === 1 || e.button === 2 || e.spaceKey) {
       this.isPanning = true;
       this.lastScreenX = e.clientX;
@@ -83,12 +81,10 @@ window.Lumina.Pointer = {
       return;
     }
 
-    // Check interaction with active piece gizmo handles
     if (this.selectedElement && xform?.handleDown && xform.handleDown(worldPt, this.selectedElement)) {
       return;
     }
 
-    // Check selection of movable piece
     const hit = this.findHitElement(worldPt);
     if (hit) {
       this.selectedElement = hit;
@@ -97,7 +93,6 @@ window.Lumina.Pointer = {
       return;
     }
 
-    // Left click on empty space initiates camera panning
     this.selectedElement = null;
     if (xform) xform.target = null;
     this.isPanning = true;
@@ -114,7 +109,6 @@ window.Lumina.Pointer = {
 
     const rect = window.Lumina.Renderer.canvas.getBoundingClientRect();
 
-    // Two-finger touch pinch-zoom and pan
     if (this.touches.size === 2) {
       const pts = Array.from(this.touches.values());
       const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
@@ -128,7 +122,6 @@ window.Lumina.Pointer = {
       return;
     }
 
-    // Camera panning
     if (this.isPanning) {
       const dx = e.clientX - this.lastScreenX;
       const dy = e.clientY - this.lastScreenY;
@@ -138,7 +131,6 @@ window.Lumina.Pointer = {
       return;
     }
 
-    // Pointer coordinates readout
     if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
       const worldPt = window.Lumina.Renderer.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
       const cx = Math.round(worldPt.x);
@@ -172,18 +164,25 @@ window.Lumina.Pointer = {
     const rect = window.Lumina.Renderer.canvas.getBoundingClientRect();
     const worldPt = window.Lumina.Renderer.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
 
-    // If mouse wheel is over selected piece, perform angle stepping
     if (this.selectedElement && this.selectedElement.rotatable !== false && !e.ctrlKey && !e.metaKey) {
       const xform = window.Lumina.EditorTransform;
       if (xform?.hitTestBody && xform.hitTestBody(worldPt, this.selectedElement)) {
+        const prevAngle = this.selectedElement.angle || 0;
         const delta = Math.sign(e.deltaY) * 5;
-        this.selectedElement.angle = ((this.selectedElement.angle || 0) + delta + 360) % 360;
+        this.selectedElement.angle = ((prevAngle + delta + 360) % 360);
+
+        const colEngine = window.Lumina.Collider;
+        if (colEngine) {
+          const game = window.Lumina.Game;
+          const elements = game?.currentElements || [];
+          colEngine.resolveRotation(this.selectedElement, elements, prevAngle);
+        }
+
         if (window.Lumina.SFX?.playRotate) window.Lumina.SFX.playRotate();
         return;
       }
     }
 
-    // Default mouse wheel action: zoom camera centered on mouse cursor
     const factor = e.deltaY < 0 ? 1.12 : 0.89;
     window.Lumina.Renderer.zoomAt(e.clientX - rect.left, e.clientY - rect.top, factor);
   }

@@ -4,6 +4,8 @@ window.Lumina.EditorTransform = {
   mode: 'idle',
   target: null,
   dragOffset: { x: 0, y: 0 },
+  startPos: { x: 0, y: 0 },
+  prevAngle: 0,
 
   getBounds(ent) {
     if (!ent) return { hw: 40, hh: 40 };
@@ -29,6 +31,10 @@ window.Lumina.EditorTransform = {
   handleDown(pt, entity) {
     if (!entity) return false;
     this.target = entity;
+    this.startPos.x = entity.x;
+    this.startPos.y = entity.y;
+    this.prevAngle = entity.angle || 0;
+
     const hInfo = this.hitTestHandles(pt, entity);
     if (hInfo) {
       this.mode = hInfo.mode;
@@ -51,12 +57,31 @@ window.Lumina.EditorTransform = {
     const sinA = Math.sin(rad);
 
     if (this.mode === 'translate') {
+      const prevX = ent.x;
+      const prevY = ent.y;
       ent.x = Math.round(pt.x - this.dragOffset.x);
       ent.y = Math.round(pt.y - this.dragOffset.y);
+
+      const colEngine = window.Lumina.Collider;
+      if (colEngine) {
+        const game = window.Lumina.Game;
+        const elements = game?.currentElements || [];
+        const roomW = (game?.currentLevel?.width) || window.Lumina.Constants.ROOM_WIDTH;
+        const roomH = (game?.currentLevel?.height) || window.Lumina.Constants.ROOM_HEIGHT;
+        colEngine.resolveTranslation(ent, elements, prevX, prevY, roomW, roomH);
+      }
     } else if (this.mode === 'rotate') {
+      const prevAng = ent.angle || 0;
       const angleRad = Math.atan2(pt.y - ent.y, pt.x - ent.x);
       let deg = Math.round((angleRad * 180) / Math.PI) + 90;
       ent.angle = ((deg % 360) + 360) % 360;
+
+      const colEngine = window.Lumina.Collider;
+      if (colEngine) {
+        const game = window.Lumina.Game;
+        const elements = game?.currentElements || [];
+        colEngine.resolveRotation(ent, elements, prevAng);
+      }
     } else if (this.mode === 'aim') {
       const angleRad = Math.atan2(pt.y - ent.y, pt.x - ent.x);
       let deg = Math.round((angleRad * 180) / Math.PI);
@@ -85,6 +110,15 @@ window.Lumina.EditorTransform = {
   },
 
   handleUp() {
+    if (this.target && window.Lumina.Collider) {
+      const game = window.Lumina.Game;
+      const elements = game?.currentElements || [];
+      if (window.Lumina.Collider.checkWallCollision(this.target, elements)) {
+        this.target.x = this.startPos.x;
+        this.target.y = this.startPos.y;
+        this.target.angle = this.prevAngle;
+      }
+    }
     this.mode = 'idle';
   },
 
@@ -100,7 +134,6 @@ window.Lumina.EditorTransform = {
     const tol = 12;
     const { hw, hh } = this.getBounds(ent);
 
-    // Rotation handle is functional in both gameplay and editor
     if (ent.rotatable !== false && !ent._isSensor && ent.type !== 'black_hole') {
       const rot = this.toWorld(ent.x, ent.y, 0, -hh - 24, rad);
       if (Math.hypot(pt.x - rot.x, pt.y - rot.y) <= tol) return { mode: 'rotate' };
@@ -111,7 +144,6 @@ window.Lumina.EditorTransform = {
       if (Math.hypot(pt.x - aim.x, pt.y - aim.y) <= tol) return { mode: 'aim' };
     }
 
-    // Resizing is disabled while playing; allowed only in editor mode
     if (window.Lumina.Game?.currentScreen === 'gameplay') {
       return null;
     }
@@ -155,11 +187,15 @@ window.Lumina.EditorTransform = {
     const isGameplay = window.Lumina.Game?.currentScreen === 'gameplay';
     const def = window.Lumina.Elements[ent.type?.toUpperCase()] || {};
 
+    const elements = window.Lumina.Game?.currentElements || [];
+    const isColliding = window.Lumina.Collider?.checkWallCollision(ent, elements);
+    const strokeColor = isColliding ? '#f43f5e' : '#00f0ff';
+
     ctx.save();
     ctx.translate(ent.x, ent.y);
     ctx.rotate(rad);
 
-    ctx.strokeStyle = '#00f0ff';
+    ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 1.2;
     ctx.setLineDash([4, 3]);
     ctx.strokeRect(-hw - 4, -hh - 4, (hw + 4) * 2, (hh + 4) * 2);
@@ -169,7 +205,7 @@ window.Lumina.EditorTransform = {
       ctx.beginPath();
       ctx.moveTo(0, -hh - 4);
       ctx.lineTo(0, -hh - 24);
-      ctx.strokeStyle = '#00f0ff';
+      ctx.strokeStyle = strokeColor;
       ctx.lineWidth = 1.2;
       ctx.stroke();
 
@@ -177,12 +213,11 @@ window.Lumina.EditorTransform = {
       ctx.arc(0, -hh - 24, 5, 0, Math.PI * 2);
       ctx.fillStyle = '#020612';
       ctx.fill();
-      ctx.strokeStyle = '#00f0ff';
+      ctx.strokeStyle = strokeColor;
       ctx.lineWidth = 2;
       ctx.stroke();
     }
 
-    // Resize square handles are drawn only in editor mode
     if (!isGameplay) {
       if (ent.type === 'wall') {
         this.drawSquareHandle(ctx, 0, -hh);
