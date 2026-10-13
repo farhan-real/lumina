@@ -15,6 +15,11 @@ window.Lumina.Game = {
       await window.Lumina.LevelRegistry.ensureLoaded();
     }
 
+    const reg = window.Lumina.LevelRegistry;
+    if (reg?.getLatestLevelIndex) {
+      reg.setCurrentIndex(reg.getLatestLevelIndex());
+    }
+
     this.bindMenuButtons();
 
     if (window.Lumina.Raycaster?.init) window.Lumina.Raycaster.init();
@@ -51,10 +56,18 @@ window.Lumina.Game = {
     const btnClear = document.getElementById('btn-menu-clear');
 
     if (btnPlay) {
-      btnPlay.onclick = () => {
+      btnPlay.onclick = async () => {
         if (window.Lumina.Synth?.ensureContext) window.Lumina.Synth.ensureContext();
+        const reg = window.Lumina.LevelRegistry;
+        if (reg?.ensureLoaded) {
+          await reg.ensureLoaded();
+        }
+        const latestIdx = reg?.getLatestLevelIndex ? reg.getLatestLevelIndex() : (reg?.currentLevelIndex || 0);
+        if (reg?.setCurrentIndex) {
+          reg.setCurrentIndex(latestIdx);
+        }
         this.switchScreen('gameplay');
-        this.loadLevel(window.Lumina.LevelRegistry.getCurrent());
+        this.loadLevel(reg.getCurrent());
       };
     }
 

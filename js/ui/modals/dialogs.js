@@ -76,8 +76,10 @@ window.Lumina.DialogTemplates = {
         allLevels.forEach((lvl, idx) => {
           const card = document.createElement('div');
           const unlocked = window.Lumina.LevelRegistry.isUnlocked(idx);
-          card.className = `level-card ${unlocked ? '' : 'locked'}`;
-          card.innerHTML = `<span class="num">${lvl.id}</span><span class="state">${unlocked ? 'OPEN' : 'LOCKED'}</span>`;
+          const cleared = window.Lumina.LevelRegistry.isLevelCleared(idx);
+          card.className = `level-card ${unlocked ? '' : 'locked'} ${cleared ? 'cleared' : ''}`;
+          const stateLabel = cleared ? 'CLEARED' : (unlocked ? 'OPEN' : 'LOCKED');
+          card.innerHTML = `<span class="num">${lvl.id}</span><span class="state">${stateLabel}</span>`;
           if (unlocked) {
             card.onclick = () => {
               if (window.Lumina.Game.currentScreen === 'editor') {

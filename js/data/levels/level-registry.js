@@ -61,8 +61,12 @@ window.Lumina.LevelRegistry = {
   setCurrentIndex(index) {
     this.isCustomLevelMode = false;
     this.activeCustomLevel = null;
-    if (index >= 0 && index < this.levels.length) {
+    const total = this.levels.length || this.maxLevel || 13;
+    if (index >= 0 && index < total) {
       this.currentLevelIndex = index;
+      try {
+        localStorage.setItem('lumina_last_level_index', String(index));
+      } catch (e) {}
     }
   },
 
@@ -71,12 +75,46 @@ window.Lumina.LevelRegistry = {
     this.activeCustomLevel = levelObj;
   },
 
+  isLevelCleared(index) {
+    try {
+      return localStorage.getItem('lumina_level_' + index) === 'cleared'
+        || localStorage.getItem('lumina_level_cleared_' + index) === 'true';
+    } catch (e) {
+      return false;
+    }
+  },
+
   isUnlocked(index) {
     if (window.Lumina.DevMode?.isUnlockedAll?.()) return true;
     if (index === 0) return true;
-    const cleared = localStorage.getItem('lumina_level_' + (index - 1)) === 'cleared'
-      || localStorage.getItem('lumina_level_cleared_' + (index - 1)) === 'true';
-    return cleared;
+    return this.isLevelCleared(index - 1);
+  },
+
+  getLatestLevelIndex() {
+    const totalCount = this.levels.length || this.maxLevel || 13;
+    let latest = 0;
+
+    for (let i = 0; i < totalCount; i++) {
+      if (this.isLevelCleared(i)) {
+        latest = Math.min(i + 1, totalCount - 1);
+      } else {
+        break;
+      }
+    }
+
+    try {
+      const saved = localStorage.getItem('lumina_last_level_index');
+      if (saved !== null) {
+        const idx = parseInt(saved, 10);
+        if (!isNaN(idx) && idx >= 0 && idx < totalCount) {
+          if (idx > latest && this.isUnlocked(idx)) {
+            latest = idx;
+          }
+        }
+      }
+    } catch (e) {}
+
+    return latest;
   },
 
   markCompleted(index) {
@@ -102,5 +140,4 @@ window.Lumina.LevelRegistry = {
   }
 };
 
-// Initiate background level resolution as soon as registry loads
 window.Lumina.LevelRegistry.ensureLoaded();
