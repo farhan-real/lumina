@@ -4,7 +4,9 @@ window.Lumina = window.Lumina || {};
   const level = {
     id: 12,
     title: 'Level 12',
-    desc: 'Black holes curve light with intense gravity. Curve the ray around the wall.',
+    desc: 'The Event Horizon: Route light around the cosmic singularity and obsidian barrier without being swallowed.',
+    width: 1000,
+    height: 700,
     emitters: [
       { x: 120, y: 180, angle: 5, color: 'white' }
     ],
@@ -13,6 +15,7 @@ window.Lumina = window.Lumina || {};
         id: 's_bh',
         x: 880,
         y: 540,
+        radius: 24,
         requirements: [{ color: 'any', count: 1 }],
         requiredColor: 'any',
         requiredBeams: 1,
@@ -20,12 +23,11 @@ window.Lumina = window.Lumina || {};
       }
     ],
     staticElements: [
-      { type: 'wall', x: 500, y: 350, width: 35, height: 180 },
-      { type: 'black_hole', x: 500, y: 350, radius: 24 }
+      { type: 'wall', x: 500, y: 350, width: 35, height: 180, angle: 0 },
+      { type: 'black_hole', x: 500, y: 350, radius: 26, gravRadius: 260 }
     ],
     inventory: [
-      { type: 'mirror', count: 2 },
-      { type: 'prism', count: 1 }
+      { type: 'mirror', count: 2, length: 80 }
     ],
     initialPlacements: []
   };

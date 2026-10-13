@@ -5,7 +5,10 @@ window.Lumina.SceneView = {
     this.renderEmitters(ctx, emitters);
     this.renderSensors(ctx, sensors);
     for (let i = 0; i < elements.length; i++) {
-      this.renderElement(ctx, elements[i]);
+      if (elements[i].type !== 'black_hole') this.renderElement(ctx, elements[i]);
+    }
+    for (let i = 0; i < elements.length; i++) {
+      if (elements[i].type === 'black_hole') this.renderElement(ctx, elements[i]);
     }
 
     if (selectedEntity && window.Lumina.EditorTransform?.render) {
@@ -125,37 +128,26 @@ window.Lumina.SceneView = {
     ctx.rotate(((el.angle || 0) * Math.PI) / 180);
 
     if (el.type === 'mirror') {
-      const len = el.length || 80;
-      const hl = len / 2;
+      const hl = (el.length || 80) / 2;
       ctx.strokeStyle = '#e0f4ff';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(-hl, 0);
-      ctx.lineTo(hl, 0);
-      ctx.stroke();
-
+      ctx.moveTo(-hl, 0); ctx.lineTo(hl, 0); ctx.stroke();
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(-hl, 1.5);
-      ctx.lineTo(hl, 1.5);
-      ctx.stroke();
+      ctx.moveTo(-hl, 1.5); ctx.lineTo(hl, 1.5); ctx.stroke();
     } else if (el.type === 'mirror_concave' || el.type === 'mirror_convex') {
       const hl = (el.length || 90) / 2;
       const sag = (el.type === 'mirror_concave' ? 1 : -1) * Math.min(24, Math.max(8, hl * 0.28));
       ctx.strokeStyle = '#e0f4ff';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(-hl, 0);
-      ctx.quadraticCurveTo(0, 2 * sag, hl, 0);
-      ctx.stroke();
-
+      ctx.moveTo(-hl, 0); ctx.quadraticCurveTo(0, 2 * sag, hl, 0); ctx.stroke();
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(-hl, sag * 0.4);
-      ctx.quadraticCurveTo(0, 2 * sag + (sag > 0 ? 2 : -2), hl, sag * 0.4);
-      ctx.stroke();
+      ctx.moveTo(-hl, sag * 0.4); ctx.quadraticCurveTo(0, 2 * sag + (sag > 0 ? 2 : -2), hl, sag * 0.4); ctx.stroke();
     } else if (el.type === 'prism') {
       const side = el.side || 70;
       const h = (side * Math.sqrt(3)) / 2;
@@ -163,10 +155,7 @@ window.Lumina.SceneView = {
       ctx.strokeStyle = 'rgba(125, 211, 252, 0.85)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(0, (-2 * h) / 3);
-      ctx.lineTo(side / 2, h / 3);
-      ctx.lineTo(-side / 2, h / 3);
-      ctx.closePath();
+      ctx.moveTo(0, (-2 * h) / 3); ctx.lineTo(side / 2, h / 3); ctx.lineTo(-side / 2, h / 3); ctx.closePath();
       ctx.fill(); ctx.stroke();
     } else if (el.type === 'lens_convex') {
       const hh = (el.height || 160) / 2;
@@ -175,10 +164,7 @@ window.Lumina.SceneView = {
       ctx.strokeStyle = '#00f0ff';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(0, -hh);
-      ctx.quadraticCurveTo(bulge, 0, 0, hh);
-      ctx.quadraticCurveTo(-bulge, 0, 0, -hh);
-      ctx.closePath();
+      ctx.moveTo(0, -hh); ctx.quadraticCurveTo(bulge, 0, 0, hh); ctx.quadraticCurveTo(-bulge, 0, 0, -hh); ctx.closePath();
       ctx.fill(); ctx.stroke();
     } else if (el.type === 'lens_concave') {
       const hh = (el.height || 160) / 2;
@@ -188,11 +174,8 @@ window.Lumina.SceneView = {
       ctx.strokeStyle = '#00f0ff';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(-hw, -hh); ctx.lineTo(hw, -hh);
-      ctx.quadraticCurveTo(waist, 0, hw, hh);
-      ctx.lineTo(-hw, hh);
-      ctx.quadraticCurveTo(-waist, 0, -hw, -hh);
-      ctx.closePath();
+      ctx.moveTo(-hw, -hh); ctx.lineTo(hw, -hh); ctx.quadraticCurveTo(waist, 0, hw, hh);
+      ctx.lineTo(-hw, hh); ctx.quadraticCurveTo(-waist, 0, -hw, -hh); ctx.closePath();
       ctx.fill(); ctx.stroke();
     } else if (el.type === 'beam_splitter') {
       const sz = el.size || 50;
@@ -202,8 +185,7 @@ window.Lumina.SceneView = {
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(-hs, hs); ctx.lineTo(hs, -hs);
-      ctx.stroke();
+      ctx.moveTo(-hs, hs); ctx.lineTo(hs, -hs); ctx.stroke();
     } else if (el.type === 'portal') {
       const hl = (el.length || 70) / 2;
       ctx.strokeStyle = '#bd00ff';
@@ -212,6 +194,10 @@ window.Lumina.SceneView = {
       ctx.beginPath();
       ctx.ellipse(0, 0, 10, hl, 0, 0, Math.PI * 2);
       ctx.fill(); ctx.stroke();
+    } else if (el.type === 'black_hole') {
+      if (window.Lumina.SingularityView?.render) {
+        window.Lumina.SingularityView.render(ctx, el);
+      }
     } else if (el.type === 'wall') {
       const w = el.width || 30;
       const h = el.height || 120;

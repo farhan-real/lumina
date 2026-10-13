@@ -1,34 +1,111 @@
 window.Lumina = window.Lumina || {};
 
 window.Lumina.Geodesic = {
-  checkBlackHole(rx, ry, rdx, rdy, bh) {
+  GRAV_RADIUS: 260,
+
+  traverseBlackHole(rx, ry, rdx, rdy, bh, maxStraightT, obstacleChecker) {
     const ox = bh.x - rx;
     const oy = bh.y - ry;
     const proj = ox * rdx + oy * rdy;
-    if (proj <= 0) return null;
+    const rGrav = bh.gravRadius || this.GRAV_RADIUS;
+    const rAbs = bh.radius || 26;
 
-    const perpX = rx + proj * rdx - bh.x;
-    const perpY = ry + proj * rdy - bh.y;
-    const dist = Math.hypot(perpX, perpY);
-
-    if (dist < bh.radius) {
-      return { absorbed: true, x: rx + proj * rdx, y: ry + proj * rdy };
+    if (proj <= 1.0) {
+      const dist = Math.hypot(ox, oy);
+      if (dist <= rAbs && maxStraightT > 0.05) {
+        return {
+          started: true,
+          absorbed: true,
+          points: [{ x: rx, y: ry }, { x: rx + rdx * 0.1, y: ry + rdy * 0.1 }]
+        };
+      }
+      return null;
     }
 
-    if (dist < bh.radius * 4.5) {
-      const defFactor = 0.5 * (1.0 - dist / (bh.radius * 4.5));
-      const ndx = rdx + (ox / dist) * defFactor;
-      const ndy = rdy + (oy / dist) * defFactor;
-      const norm = Math.hypot(ndx, ndy) || 1;
-      return {
-        deflected: true,
-        x: rx + proj * rdx,
-        y: ry + proj * rdy,
-        dx: ndx / norm,
-        dy: ndy / norm
-      };
+    const perpSq = (ox * ox + oy * oy) - proj * proj;
+    if (perpSq >= rGrav * rGrav || perpSq < 0) return null;
+
+    const halfFieldChord = Math.sqrt(Math.max(0, rGrav * rGrav - perpSq));
+    const tEnter = Math.max(0, proj - halfFieldChord);
+
+    if (tEnter >= maxStraightT) return null;
+
+    const enterX = rx + tEnter * rdx;
+    const enterY = ry + tEnter * rdy;
+
+    const points = [];
+    if (tEnter > 1.0) {
+      points.push({ x: rx, y: ry });
     }
-    return null;
+    points.push({ x: enterX, y: enterY });
+
+    let cx = enterX;
+    let cy = enterY;
+    let cdx = rdx;
+    let cdy = rdy;
+    const stepSize = 22;
+    let absorbed = false;
+    let hitObstacle = null;
+    const tempOut = { t: 0, nx: 0, ny: 0, el: null };
+
+    for (let step = 0; step < 22; step++) {
+      const toBhX = bh.x - cx;
+      const toBhY = bh.y - cy;
+      const distSq = toBhX * toBhX + toBhY * toBhY;
+      const dist = Math.sqrt(distSq);
+
+      if (dist <= rAbs) {
+        absorbed = true;
+        break;
+      }
+
+      if (dist < rGrav) {
+        const falloff = Math.pow(1.0 - (dist - rAbs) / (rGrav - rAbs), 1.35);
+        const force = 0.52 * falloff;
+        cdx += (toBhX / dist) * force;
+        cdy += (toBhY / dist) * force;
+        const norm = Math.hypot(cdx, cdy) || 1;
+        cdx /= norm;
+        cdy /= norm;
+      } else if (step > 2) {
+        const dotAway = (cx - bh.x) * cdx + (cy - bh.y) * cdy;
+        if (dotAway > 0) break;
+      }
+
+      const nextX = cx + cdx * stepSize;
+      const nextY = cy + cdy * stepSize;
+
+      if (obstacleChecker(cx, cy, cdx, cdy, tempOut)) {
+        if (tempOut.t > 0.05 && tempOut.t < stepSize) {
+          const obX = cx + cdx * tempOut.t;
+          const obY = cy + cdy * tempOut.t;
+          points.push({ x: obX, y: obY });
+          hitObstacle = {
+            el: tempOut.el,
+            x: obX,
+            y: obY,
+            nx: tempOut.nx,
+            ny: tempOut.ny,
+            dx: cdx,
+            dy: cdy
+          };
+          break;
+        }
+      }
+
+      cx = nextX;
+      cy = nextY;
+      points.push({ x: cx, y: cy });
+    }
+
+    return {
+      started: true,
+      points,
+      absorbed,
+      hitObstacle,
+      finalDx: cdx,
+      finalDy: cdy
+    };
   },
 
   mapPortal(hx, hy, dx, dy, srcPortal, dstPortal, out) {

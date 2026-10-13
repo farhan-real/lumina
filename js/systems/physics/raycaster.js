@@ -27,10 +27,6 @@ window.Lumina.Raycaster = {
       sensors[s].receivedColors = [];
     }
 
-    const hit = { t: 0, x: 0, y: 0, nx: 0, ny: 0 };
-    const ref = { dx: 0, dy: 0 };
-    const lenOut = { dx: 0, dy: 0, x: 0, y: 0 };
-
     for (let e = 0; e < emitters.length; e++) {
       const em = emitters[e];
       const rad = (em.angle || 0) * (Math.PI / 180);
@@ -38,12 +34,12 @@ window.Lumina.Raycaster = {
       const edy = Math.sin(rad);
 
       if (em.color === 'white') {
-        this.cast(em.x, em.y, edx, edy, 1.0, 0.2, 0.25, 1.0, 0, e, elements, sensors, hit, ref, lenOut);
-        this.cast(em.x, em.y, edx, edy, 0.1, 1.0, 0.35, 1.0, 0, e, elements, sensors, hit, ref, lenOut);
-        this.cast(em.x, em.y, edx, edy, 0.1, 0.3, 1.0, 1.0, 0, e, elements, sensors, hit, ref, lenOut);
+        this.cast(em.x, em.y, edx, edy, 1.0, 0.2, 0.25, 1.0, 0, e, elements, sensors);
+        this.cast(em.x, em.y, edx, edy, 0.1, 1.0, 0.35, 1.0, 0, e, elements, sensors);
+        this.cast(em.x, em.y, edx, edy, 0.1, 0.3, 1.0, 1.0, 0, e, elements, sensors);
       } else {
         const rgb = window.Lumina.Constants.COLOR_MAP[em.color] || [1, 1, 1];
-        this.cast(em.x, em.y, edx, edy, rgb[0], rgb[1], rgb[2], 1.0, 0, e, elements, sensors, hit, ref, lenOut);
+        this.cast(em.x, em.y, edx, edy, rgb[0], rgb[1], rgb[2], 1.0, 0, e, elements, sensors);
       }
     }
 
@@ -87,25 +83,98 @@ window.Lumina.Raycaster = {
     }
   },
 
-  cast(ox, oy, dx, dy, r, g, b, inten, depth, sourceId, elements, sensors, hitH, refH, lenOut) {
-    if (depth > 20 || inten < 0.1) return;
+  cast(ox, oy, dx, dy, r, g, b, inten, depth, sourceId, elements, sensors) {
+    if (depth > 28 || inten < 0.05) return;
 
     let nearestT = 3200;
     let hitX = ox + dx * nearestT;
     let hitY = oy + dy * nearestT;
+    let hitNx = 0;
+    let hitNy = 0;
     let hitElem = null;
-    let hitNx = 0, hitNy = 0;
+
+    const tempHit = { t: 0, x: 0, y: 0, nx: 0, ny: 0 };
 
     for (let i = 0; i < elements.length; i++) {
       const el = elements[i];
-      if (this.intersect(ox, oy, dx, dy, el, hitH)) {
-        if (hitH.t < nearestT) {
-          nearestT = hitH.t;
-          hitX = hitH.x; hitY = hitH.y;
-          hitNx = hitH.nx; hitNy = hitH.ny;
+      if (el.type === 'black_hole') continue;
+      if (this.intersect(ox, oy, dx, dy, el, tempHit)) {
+        if (tempHit.t > 0.05 && tempHit.t < nearestT) {
+          nearestT = tempHit.t;
+          hitX = tempHit.x;
+          hitY = tempHit.y;
+          hitNx = tempHit.nx;
+          hitNy = tempHit.ny;
           hitElem = el;
         }
       }
+    }
+
+    let bhTraverse = null;
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i];
+      if (el.type !== 'black_hole') continue;
+      const trav = window.Lumina.Geodesic.traverseBlackHole(ox, oy, dx, dy, el, nearestT, (px, py, pdx, pdy, hOut) => {
+        let bestT = Infinity;
+        let bestEl = null;
+        let bNx = 0;
+        let bNy = 0;
+        for (let k = 0; k < elements.length; k++) {
+          const ob = elements[k];
+          if (ob.type === 'black_hole') continue;
+          if (this.intersect(px, py, pdx, pdy, ob, hOut)) {
+            if (hOut.t > 0.05 && hOut.t < bestT) {
+              bestT = hOut.t;
+              bestEl = ob;
+              bNx = hOut.nx;
+              bNy = hOut.ny;
+            }
+          }
+        }
+        if (bestEl) {
+          hOut.t = bestT;
+          hOut.el = bestEl;
+          hOut.nx = bNx;
+          hOut.ny = bNy;
+          return true;
+        }
+        return false;
+      });
+
+      if (trav && trav.started) {
+        bhTraverse = trav;
+        break;
+      }
+    }
+
+    if (bhTraverse) {
+      const pts = bhTraverse.points;
+      for (let p = 0; p < pts.length - 1; p++) {
+        const p1 = pts[p];
+        const p2 = pts[p + 1];
+        if (this.activeRays < this.rayPool.length) {
+          const seg = this.rayPool[this.activeRays++];
+          seg.x1 = p1.x; seg.y1 = p1.y;
+          seg.x2 = p2.x; seg.y2 = p2.y;
+          seg.r = r; seg.g = g; seg.b = b;
+          seg.intensity = inten;
+        }
+        this.checkSensors(p1.x, p1.y, p2.x, p2.y, r, g, b, sourceId, sensors);
+      }
+
+      if (bhTraverse.hitObstacle) {
+        const ob = bhTraverse.hitObstacle;
+        this.handleHit(ob.el, ob.x, ob.y, ob.dx, ob.dy, ob.nx, ob.ny, r, g, b, inten, depth + 1, sourceId, elements, sensors);
+        return;
+      }
+
+      if (bhTraverse.absorbed) {
+        return;
+      }
+
+      const last = pts[pts.length - 1];
+      this.cast(last.x, last.y, bhTraverse.finalDx, bhTraverse.finalDy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors);
+      return;
     }
 
     if (this.activeRays < this.rayPool.length) {
@@ -119,7 +188,7 @@ window.Lumina.Raycaster = {
     this.checkSensors(ox, oy, hitX, hitY, r, g, b, sourceId, sensors);
 
     if (hitElem) {
-      this.handleHit(hitElem, hitX, hitY, dx, dy, hitNx, hitNy, r, g, b, inten, depth, sourceId, elements, sensors, hitH, refH, lenOut);
+      this.handleHit(hitElem, hitX, hitY, dx, dy, hitNx, hitNy, r, g, b, inten, depth, sourceId, elements, sensors);
     }
   },
 
@@ -127,6 +196,28 @@ window.Lumina.Raycaster = {
     const math = window.Lumina.OpticsMath;
     if (el.type === 'wall') {
       return math.intersectRayBox(ox, oy, dx, dy, el.x, el.y, el.width || 30, el.height || 120, el.angle || 0, out);
+    }
+    if (el.type === 'black_hole') {
+      const r = el.radius || 26;
+      const ox0 = el.x - ox;
+      const oy0 = el.y - oy;
+      const proj = ox0 * dx + oy0 * dy;
+      if (proj > 0.05) {
+        const perpSq = (ox0 * ox0 + oy0 * oy0) - proj * proj;
+        if (perpSq >= 0 && perpSq <= r * r) {
+          const t = proj - Math.sqrt(Math.max(0, r * r - perpSq));
+          if (t > 0.05) {
+            out.t = t;
+            out.x = ox + t * dx;
+            out.y = oy + t * dy;
+            const norm = Math.hypot(out.x - el.x, out.y - el.y) || 1;
+            out.nx = (out.x - el.x) / norm;
+            out.ny = (out.y - el.y) / norm;
+            return true;
+          }
+        }
+      }
+      return false;
     }
     if (el.type === 'mirror_concave' || el.type === 'mirror_convex') {
       const hl = (el.length || 90) / 2;
@@ -166,18 +257,24 @@ window.Lumina.Raycaster = {
     return false;
   },
 
-  handleHit(el, hx, hy, dx, dy, nx, ny, r, g, b, inten, depth, sourceId, elements, sensors, hitH, refH, lenOut) {
-    if (el.type === 'wall') return;
+  handleHit(el, hx, hy, dx, dy, nx, ny, r, g, b, inten, depth, sourceId, elements, sensors) {
+    if (el.type === 'wall' || el.type === 'black_hole') return;
+
     if (el.type === 'mirror' || el.type === 'mirror_concave' || el.type === 'mirror_convex') {
-      window.Lumina.OpticsMath.reflect(dx, dy, nx, ny, refH);
-      this.cast(hx, hy, refH.dx, refH.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
+      const refOut = { dx: 0, dy: 0 };
+      window.Lumina.OpticsMath.reflect(dx, dy, nx, ny, refOut);
+      const nextX = hx + refOut.dx * 0.15;
+      const nextY = hy + refOut.dy * 0.15;
+      this.cast(nextX, nextY, refOut.dx, refOut.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors);
     } else if (el.type === 'beam_splitter') {
-      window.Lumina.OpticsMath.reflect(dx, dy, nx, ny, refH);
-      this.cast(hx, hy, refH.dx, refH.dy, r, g, b, inten * 0.5, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
-      this.cast(hx + dx * 2, hy + dy * 2, dx, dy, r, g, b, inten * 0.5, depth + 1, sourceId + 50, elements, sensors, hitH, refH, lenOut);
+      const refOut = { dx: 0, dy: 0 };
+      window.Lumina.OpticsMath.reflect(dx, dy, nx, ny, refOut);
+      this.cast(hx + refOut.dx * 0.15, hy + refOut.dy * 0.15, refOut.dx, refOut.dy, r, g, b, inten * 0.5, depth + 1, sourceId, elements, sensors);
+      this.cast(hx + dx * 1.5, hy + dy * 1.5, dx, dy, r, g, b, inten * 0.5, depth + 1, sourceId + 50, elements, sensors);
     } else if (el.type === 'lens_convex' || el.type === 'lens_concave') {
+      const lenOut = { dx: 0, dy: 0 };
       window.Lumina.Lenses.calculateDeflection(el, hx, hy, dx, dy, lenOut);
-      this.cast(hx + lenOut.dx * 2, hy + lenOut.dy * 2, lenOut.dx, lenOut.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
+      this.cast(hx + lenOut.dx * 1.5, hy + lenOut.dy * 1.5, lenOut.dx, lenOut.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors);
     } else if (el.type === 'prism') {
       const prismRad = ((el.angle || 0) * Math.PI) / 180;
       const incAngle = Math.atan2(dy, dx);
@@ -191,13 +288,14 @@ window.Lumina.Raycaster = {
       const outAngle = incAngle + angleBias + chromaticSpread;
       const outDx = Math.cos(outAngle);
       const outDy = Math.sin(outAngle);
-      this.cast(hx + outDx * 3, hy + outDy * 3, outDx, outDy, r, g, b, inten, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
+      this.cast(hx + outDx * 2, hy + outDy * 2, outDx, outDy, r, g, b, inten, depth + 1, sourceId, elements, sensors);
     } else if (el.type === 'portal') {
       const allPortals = elements.filter((item) => item.type === 'portal');
       const partner = allPortals.find((item) => (item.linkId && item.linkId === el.id) || (el.linkId && item.id === el.linkId) || (item !== el));
       if (partner) {
-        window.Lumina.Geodesic.mapPortal(hx, hy, dx, dy, el, partner, lenOut);
-        this.cast(lenOut.x, lenOut.y, lenOut.dx, lenOut.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors, hitH, refH, lenOut);
+        const portOut = { x: 0, y: 0, dx: 0, dy: 0 };
+        window.Lumina.Geodesic.mapPortal(hx, hy, dx, dy, el, partner, portOut);
+        this.cast(portOut.x, portOut.y, portOut.dx, portOut.dy, r, g, b, inten * 0.95, depth + 1, sourceId, elements, sensors);
       }
     }
   },
