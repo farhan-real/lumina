@@ -1,7 +1,7 @@
 window.Lumina = window.Lumina || {};
 
 window.Lumina.LevelRegistry = {
-  maxLevel: 13,
+  maxLevel: 14,
   levels: [],
   currentLevelIndex: 0,
   isCustomLevelMode: false,
