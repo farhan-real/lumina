@@ -9,7 +9,6 @@ window.Lumina = window.Lumina || {};
       { x: 120, y: 350, angle: 0, color: 'amber' }
     ],
     sensors: [
-      { id: 's_cv_top', x: 260, y: 190, requiredColor: 'amber', active: false },
       { id: 's_cv_bot', x: 260, y: 510, requiredColor: 'amber', active: false }
     ],
     staticElements: [

@@ -17,7 +17,7 @@ window.Lumina = window.Lumina || {};
       { type: 'wall', x: 420, y: 470, width: 24, height: 80 }
     ],
     inventory: [
-      { type: 'mirror_concave', count: 1 }
+      { type: 'mirror_concave', count: 1, length: 150 }
     ],
     initialPlacements: []
   };
